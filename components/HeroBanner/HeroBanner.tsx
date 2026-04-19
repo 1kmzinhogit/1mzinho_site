@@ -9,10 +9,11 @@ import {
   CarouselDots, Dot
 } from './Style'
 
+
 const banners = [
-  { src: "banner.png",  position: "center center" },
-  { src: "banner2.png", position: "center center" },
-  { src: "banner3.png", position: "center top" },   // ajusta para não cortar o rosto
+  { src: "/banner.png",  position: "center center" },
+  { src: "/banner2.png", position: "center center" },
+  { src: "/banner3.png", position: "center top" },   // ajusta para não cortar o rosto
 ]
 
 export default function HeroBanner() {
