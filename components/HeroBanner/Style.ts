@@ -1,29 +1,56 @@
 import styled from 'styled-components'
 
-export const HeroWrapper = styled.section<{ $banner: string; $bannerPosition?: string }>`
+// export const HeroWrapper = styled.section<{ $banner: string; $bannerPosition?: string }>`
+//   position: relative;
+//   min-height: 100vh;
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
+//   background: url("${({ $banner }) => $banner}") no-repeat ${({ $bannerPosition }) => $bannerPosition ?? 'center center'};
+//   background-size: cover;
+//   overflow: hidden;
+//   transition: background-image 0.8s ease-in-out;
+
+//   &::before {
+//     content: '';
+//     position: absolute;
+//     top: 0;
+//     left: 0;
+//     right: 0;
+//     bottom: 0;
+//     background: 
+//       radial-gradient(circle at 20% 30%, rgba(215, 255, 50, 0.14) 0%, transparent 40%),
+//       radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.08) 0%, transparent 40%);
+//     pointer-events: none;
+//   }
+// `
+
+export const HeroWrapper = styled.section`
   position: relative;
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: url("${({ $banner }) => $banner}") no-repeat ${({ $bannerPosition }) => $bannerPosition ?? 'center center'};
-  background-size: cover;
   overflow: hidden;
-  transition: background-image 0.8s ease-in-out;
+
+  .banner-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
 
   &::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
     background: 
       radial-gradient(circle at 20% 30%, rgba(215, 255, 50, 0.14) 0%, transparent 40%),
       radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.08) 0%, transparent 40%);
     pointer-events: none;
+    z-index: 1;
   }
 `
+
 
 export const Content = styled.div`
   position: relative;

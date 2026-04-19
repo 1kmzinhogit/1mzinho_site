@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { Calendar, MapPin, ChevronDown } from 'lucide-react'
 import { eventInfo } from '@/data/race-data'
 import {
@@ -8,7 +9,6 @@ import {
   InfoGrid, InfoItem, CTAButton, ScrollIndicator,
   CarouselDots, Dot
 } from './Style'
-
 
 const banners = [
   { src: "/banner.png",  position: "center center" },
@@ -27,7 +27,21 @@ export default function HeroBanner() {
   }, [])
 
   return (
-    <HeroWrapper id="inicio" $banner={banners[currentBanner].src} $bannerPosition={banners[currentBanner].position}>
+    <HeroWrapper id="inicio">
+      {/* Banner de fundo */}
+      <div className="banner-bg">
+        <Image
+          src={banners[currentBanner].src}
+          alt={`Banner ${currentBanner + 1}`}
+          fill
+          priority
+          style={{
+            objectFit: 'cover',
+            objectPosition: banners[currentBanner].position,
+          }}
+        />
+      </div>
+
       <RunnerSilhouette />
       <Content>
         <Badge>Corrida de Rua 2026</Badge>
