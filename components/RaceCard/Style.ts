@@ -291,6 +291,7 @@ export const ModalOverlay = styled.div<{ $isOpen: boolean }>`
   visibility: ${({ $isOpen }) => $isOpen ? 'visible' : 'hidden'};
   transition: all 0.3s ease;
   padding: 1rem;
+  overflow-y: auto;
 `
 
 export const ModalContent = styled.div`
