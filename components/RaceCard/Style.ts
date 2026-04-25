@@ -291,21 +291,79 @@ export const ModalSubtitle = styled.p`
   margin-bottom: 1.5rem;
 `
 
+export const GenderSelector = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+`
+
+export const GenderButton = styled.button<{ $selected: boolean }>`
+  flex: 1;
+  min-width: 80px;
+  padding: 0.75rem 0.5rem;
+  border-radius: 10px;
+  border: 2px solid ${({ $selected }) => $selected ? '#d7ff32' : 'rgba(255, 255, 255, 0.2)'};
+  background: ${({ $selected }) => $selected ? 'rgba(215, 255, 50, 0.16)' : 'rgba(8, 22, 56, 0.55)'};
+  color: ${({ $selected }) => $selected ? '#d7ff32' : 'rgba(255, 255, 255, 0.8)'};
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  &:hover {
+    border-color: #d7ff32;
+    color: #d7ff32;
+  }
+`
+
+export const ElderlyCheckbox = styled.label`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: rgba(8, 22, 56, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  transition: all 0.2s;
+  
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.4);
+  }
+  
+  input {
+    width: 18px;
+    height: 18px;
+    accent-color: #d7ff32;
+    cursor: pointer;
+  }
+  
+  span {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+`
+
 export const SizeSelector = styled.div`
   display: flex;
-  gap: 0.75rem;
+  gap: 0.5rem;
   margin-bottom: 1rem;
+  flex-wrap: wrap;
 `
 
 export const SizeButton = styled.button<{ $selected: boolean }>`
   flex: 1;
-  padding: 1rem;
+  min-width: 50px;
+  padding: 0.75rem 0.5rem;
   border-radius: 10px;
   border: 2px solid ${({ $selected }) => $selected ? '#d7ff32' : 'rgba(255, 255, 255, 0.2)'};
   background: ${({ $selected }) => $selected ? 'rgba(215, 255, 50, 0.16)' : 'rgba(8, 22, 56, 0.55)'};
   color: ${({ $selected }) => $selected ? '#d7ff32' : 'rgba(255, 255, 255, 0.8)'};
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1rem;
   cursor: pointer;
   transition: all 0.2s;
   
@@ -317,6 +375,40 @@ export const SizeButton = styled.button<{ $selected: boolean }>`
 
 export const ShoeNumberInput = styled.div`
   margin-bottom: 1.5rem;
+`
+
+export const TeamNameInput = styled.div`
+  margin-bottom: 1rem;
+`
+
+export const ColorSelector = styled.div`
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+`
+
+export const ColorButton = styled.button<{ $selected: boolean; $color: string }>`
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 3px solid ${({ $selected, $color }) => $selected ? '#fff' : $color};
+  background: ${({ $color }) => $color};
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: ${({ $selected }) => $selected ? '0 0 0 2px #d7ff32' : 'none'};
+  
+  &:hover {
+    transform: scale(1.1);
+  }
+`
+
+export const ColorLabel = styled.div`
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.8rem;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 `
 
 export const ConfirmButton = styled.button`

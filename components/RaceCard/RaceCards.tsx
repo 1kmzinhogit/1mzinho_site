@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Check, AlertCircle, Zap, UserPlus, CreditCard, X } from 'lucide-react'
 import { raceKits } from '@/data/race-data'
-import type { RaceKit, ShirtSize } from '@/types/race'
+import type { RaceKit, ShirtSize, GenderCategory } from '@/types/race'
 import { loadMercadoPago } from "@mercadopago/sdk-js";
 
 
@@ -11,7 +11,8 @@ import {
   Section, Container, SectionHeader, SectionTitle, SectionSubtitle, Grid, Card, FeaturedBadge,
   Distance, RaceName, Description, LotInfo, LotBadge, Slots, Price, FormGroup, Label, Input,
   ButtonGroup, ActionButton, Message, ModalOverlay, ModalContent, ModalClose, ModalTitle,
-  ModalSubtitle, PriceTag, SizeSelector, SizeButton, ShoeNumberInput, ConfirmButton
+  ModalSubtitle, PriceTag, SizeSelector, SizeButton, ShoeNumberInput, ConfirmButton,
+  GenderSelector, GenderButton, ElderlyCheckbox, TeamNameInput, ColorSelector, ColorButton, ColorLabel
 } from './Style'
 
 
@@ -27,7 +28,11 @@ interface CardState {
 interface ModalState {
   isOpen: boolean
   size: ShirtSize
+  gender: GenderCategory
+  isElderly: boolean
   shoeNumber: string
+  teamName: string
+  kitColor: string
   kit: RaceKit | null
   userData: { name: string; email: string; cpf: string; phone: string } | null
 }
@@ -50,7 +55,11 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
   const [modal, setModal] = useState<ModalState>({
     isOpen: false,
     size: 'M',
+    gender: 'Masculino',
+    isElderly: false,
     shoeNumber: '',
+    teamName: '',
+    kitColor: '#d7ff32',
     kit: null,
     userData: null
   })
@@ -125,7 +134,11 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
     setModal({
       isOpen: true,
       size: 'M',
+      gender: 'Masculino',
+      isElderly: false,
       shoeNumber: '',
+      teamName: '',
+      kitColor: '#d7ff32',
       kit: kit,
       userData: {
         name: state.name,
@@ -148,7 +161,11 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
       kit: modal.kit,
       user: modal.userData,
       shirtSize: modal.size,
+      gender: modal.gender,
+      isElderly: modal.isElderly,
       shoeNumber: modal.shoeNumber,
+      teamName: modal.teamName,
+      kitColor: modal.kitColor,
       amount: modal.kit?.price
     }
     
@@ -270,16 +287,40 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
           </ModalClose>
           
           <ModalTitle>Finalizar Compra</ModalTitle>
-          <ModalSubtitle>Escolha o tamanho da camisa e numeracao</ModalSubtitle>
+          <ModalSubtitle>Escolha a categoria, tamanho da camisa e numeracao</ModalSubtitle>
           
           <PriceTag>
             <span>R$ {kit.price.toFixed(2).replace('.', ',')}</span>
           </PriceTag>
           
           <FormGroup>
+            <Label>Categoria</Label>
+            <GenderSelector>
+              {(['Masculino', 'Feminino', 'LGBTQIA+', '60+'] as GenderCategory[]).map(gender => (
+                <GenderButton
+                  key={gender}
+                  $selected={modal.gender === gender}
+                  onClick={() => setModal(prev => ({ ...prev, gender }))}
+                >
+                  {gender}
+                </GenderButton>
+              ))}
+            </GenderSelector>
+          </FormGroup>
+
+          <ElderlyCheckbox>
+            <input 
+              type="checkbox" 
+              checked={modal.isElderly}
+              onChange={(e) => setModal(prev => ({ ...prev, isElderly: e.target.checked }))}
+            />
+            <span>Idoso (60+)</span>
+          </ElderlyCheckbox>
+          
+          <FormGroup>
             <Label>Tamanho da Camisa</Label>
             <SizeSelector>
-              {(['P', 'M', 'G'] as ShirtSize[]).map(size => (
+              {(['PP', 'P', 'M', 'G', 'GG'] as ShirtSize[]).map(size => (
                 <SizeButton
                   key={size}
                   $selected={modal.size === size}
@@ -301,6 +342,38 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
               maxLength={2}
             />
           </ShoeNumberInput>
+          
+          <TeamNameInput>
+            <Label>Nome da Equipe (opcional)</Label>
+            <Input 
+              type="text" 
+              placeholder="Ex: Corredores do Bairro"
+              value={modal.teamName}
+              onChange={(e) => setModal(prev => ({ ...prev, teamName: e.target.value }))}
+            />
+          </TeamNameInput>
+          
+          <FormGroup>
+            <ColorLabel>Cor do Kit</ColorLabel>
+            <ColorSelector>
+              {[
+                { color: '#d7ff32', name: 'Amarelo' },
+                { color: '#ffffff', name: 'Branco' },
+                { color: '#000000', name: 'Preto' },
+                { color: '#ff6b6b', name: 'Vermelho' },
+                { color: '#4ecdc4', name: 'Azul' },
+                { color: '#9b59b6', name: 'Roxo' }
+              ].map(({ color, name }) => (
+                <ColorButton
+                  key={color}
+                  $selected={modal.kitColor === color}
+                  $color={color}
+                  onClick={() => setModal(prev => ({ ...prev, kitColor: color }))}
+                  title={name}
+                />
+              ))}
+            </ColorSelector>
+          </FormGroup>
           
           <ConfirmButton onClick={handleConfirmPurchase}>
             <CreditCard size={18} />

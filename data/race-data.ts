@@ -8,7 +8,8 @@ export const raceKits: RaceKit[] = [
     price: 49.90,
     lot: 1,
     availableSlots: 100,
-    description: 'Corrida especial para crianças de 5 a 10 anos'
+    description: 'Corrida especial para crianças de 5 a 10 anos',
+    img: "/teste.png"
   },
   {
     id: '3km-lote1',
@@ -17,7 +18,8 @@ export const raceKits: RaceKit[] = [
     price: 79.90,
     lot: 1,
     availableSlots: 200,
-    description: 'Ideal para iniciantes e caminhada'
+    description: 'Ideal para iniciantes e caminhada',
+    img: "/teste.png"
   },
   {
     id: '5km-lote1',
@@ -26,7 +28,8 @@ export const raceKits: RaceKit[] = [
     price: 99.90,
     lot: 1,
     availableSlots: 300,
-    description: 'Percurso intermediário para todos os níveis'
+    description: 'Percurso intermediário para todos os níveis',
+    img: "/teste.png"
   },
   {
     id: '10km-lote1',
@@ -35,7 +38,8 @@ export const raceKits: RaceKit[] = [
     price: 129.90,
     lot: 1,
     availableSlots: 150,
-    description: 'Para corredores experientes'
+    description: 'Para corredores experientes',
+    img: "/teste.png"
   },
   {
     id: '21km-lote1',
@@ -44,7 +48,8 @@ export const raceKits: RaceKit[] = [
     price: 189.90,
     lot: 1,
     availableSlots: 100,
-    description: 'O desafio dos verdadeiros atletas'
+    description: 'O desafio dos verdadeiros atletas',
+    img: "/teste.png"
   }
 ]
 
