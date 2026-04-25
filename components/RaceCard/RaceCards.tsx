@@ -9,10 +9,11 @@ import { loadMercadoPago } from "@mercadopago/sdk-js";
 
 import { 
   Section, Container, SectionHeader, SectionTitle, SectionSubtitle, Grid, Card, FeaturedBadge,
-  Distance, RaceName, Description, LotInfo, LotBadge, Slots, Price, FormGroup, Label, Input,
+  Distance, RaceName, Description, LotInfo, LotHeader, LotBadge, Slots, Price, FormGroup, Label, Input,
   ButtonGroup, ActionButton, Message, ModalOverlay, ModalContent, ModalClose, ModalTitle,
   ModalSubtitle, PriceTag, SizeSelector, SizeButton, ShoeNumberInput, ConfirmButton,
-  GenderSelector, GenderButton, ElderlyCheckbox, TeamNameInput, ColorSelector, ColorButton, ColorLabel
+  GenderSelector, GenderButton, ElderlyCheckbox, TeamNameInput, ColorSelector, ColorButton, ColorLabel,
+  ProgressBarContainer, ProgressBarFill, ProgressLabel
 } from './Style'
 
 
@@ -191,8 +192,25 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
         <Description>{kit.description}</Description>
         
         <LotInfo>
-          <LotBadge>Lote {kit.lot}</LotBadge>
-          <Slots>{kit.availableSlots} vagas disponíveis</Slots>
+          <LotHeader>
+            <LotBadge>Lote {kit.lot}</LotBadge>
+            <Slots>{kit.availableSlots} vagas disponíveis</Slots>
+          </LotHeader>
+          
+          {kit.soldSlots !== undefined && (
+            <>
+              <ProgressBarContainer>
+                <ProgressBarFill 
+                  $percentage={Math.min((kit.soldSlots / kit.availableSlots) * 100, 100)}
+                  $critical={(kit.soldSlots / kit.availableSlots) >= 0.9}
+                />
+              </ProgressBarContainer>
+              <ProgressLabel>
+                <span>{kit.soldSlots} vendidas</span>
+                <span>{Math.round((kit.soldSlots / kit.availableSlots) * 100)}% ocupado</span>
+              </ProgressLabel>
+            </>
+          )}
         </LotInfo>
         
         <Price>

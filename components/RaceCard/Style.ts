@@ -101,12 +101,16 @@ export const Description = styled.p`
 `
 
 export const LotInfo = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 1.5rem;
   padding-bottom: 1.5rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+`
+
+export const LotHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
 `
 
 export const LotBadge = styled.span`
@@ -122,6 +126,36 @@ export const LotBadge = styled.span`
 export const Slots = styled.span`
   color: rgba(255, 255, 255, 0.75);
   font-size: 0.8rem;
+`
+
+export const ProgressBarContainer = styled.div`
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+`
+
+export const ProgressBarFill = styled.div<{ $percentage: number; $critical?: boolean }>`
+  height: 100%;
+  width: ${({ $percentage }) => $percentage}%;
+  background: ${({ $critical, $percentage }) => 
+    $critical || $percentage >= 90 
+      ? '#e74c3c' 
+      : $percentage >= 70 
+        ? '#f39c12' 
+        : '#d7ff32'};
+  border-radius: 4px;
+  transition: width 0.5s ease;
+`
+
+export const ProgressLabel = styled.div`
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.6);
 `
 
 export const Price = styled.div`
