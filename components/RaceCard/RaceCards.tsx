@@ -16,6 +16,35 @@ import {
   ProgressBarContainer, ProgressBarFill, ProgressLabel, BannerCorrida,
 } from './Style'
 
+// ─── Hook: trava o scroll do body enquanto o modal está aberto ────────────────
+
+function useScrollLock(isLocked: boolean) {
+  useEffect(() => {
+    if (!isLocked) {
+      document.body.style.overflow = ''
+      document.body.style.touchAction = ''
+      return
+    }
+
+    // Salva a posição atual para não pular ao destravat
+    const scrollY = window.scrollY
+    document.body.style.overflow = 'hidden'
+    document.body.style.touchAction = 'none'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.position = 'fixed'
+    document.body.style.width = '100%'
+
+    return () => {
+      document.body.style.overflow = ''
+      document.body.style.touchAction = ''
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+      window.scrollTo(0, scrollY)
+    }
+  }, [isLocked])
+}
+
 // ─── Interfaces ───────────────────────────────────────────────────────────────
 
 interface CardState {
@@ -68,6 +97,9 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
     kit: null,
     userData: null,
   })
+
+  // Trava o scroll do body enquanto o modal estiver aberto
+  useScrollLock(modal.isOpen)
 
   // ── Formatters ───────────────────────────────────────────────────────────────
 
@@ -150,7 +182,6 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
       amount: modal.kit?.price,
     }
 
-    // Salva no sessionStorage — nenhum dado sensível vai para a URL
     sessionStorage.setItem('pendingPayment', JSON.stringify(paymentData))
     router.push('/pagamento/processar')
   }
@@ -282,7 +313,6 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
             <span>R$ {kit.price.toFixed(2).replace('.', ',')}</span>
           </PriceTag>
 
-          {/* Categoria */}
           <FormGroup>
             <Label>Categoria</Label>
             <GenderSelector>
@@ -299,7 +329,6 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
             </GenderSelector>
           </FormGroup>
 
-          {/* Idoso */}
           <ElderlyCheckbox>
             <input
               type="checkbox"
@@ -309,7 +338,6 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
             <span>Idoso (60+)</span>
           </ElderlyCheckbox>
 
-          {/* Tamanho */}
           <FormGroup>
             <Label>Tamanho da Camisa</Label>
             <SizeSelector>
@@ -326,7 +354,6 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
             </SizeSelector>
           </FormGroup>
 
-          {/* Numeração */}
           <ShoeNumberInput>
             <Label>Numeração (opcional)</Label>
             <Input
@@ -341,7 +368,6 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
             />
           </ShoeNumberInput>
 
-          {/* Equipe */}
           <TeamNameInput>
             <Label>Nome da Equipe (opcional)</Label>
             <Input
@@ -352,7 +378,6 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
             />
           </TeamNameInput>
 
-          {/* Cor do kit */}
           <FormGroup>
             <ColorLabel>Cor do Kit</ColorLabel>
             <ColorSelector>

@@ -7,6 +7,7 @@ import { ServerStyleSheet, StyleSheetManager, createGlobalStyle } from 'styled-c
 const GlobalStyle = createGlobalStyle`
   *, *::before, *::after {
     box-sizing: border-box;
+    
   }
 `
 

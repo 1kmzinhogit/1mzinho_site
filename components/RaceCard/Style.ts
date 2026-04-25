@@ -292,6 +292,8 @@ export const ModalOverlay = styled.div<{ $isOpen: boolean }>`
   transition: all 0.3s ease;
   padding: 1rem;
   overflow-y: auto;
+  overscroll-behavior: contain;   /* ← impede o scroll vazar pro fundo */
+  touch-action: none; 
 `
 
 export const ModalContent = styled.div`
@@ -302,6 +304,8 @@ export const ModalContent = styled.div`
   width: 100%;
   border: 1px solid rgba(255, 255, 255, 0.25);
   position: relative;
+  overscroll-behavior: contain;   /* ← scroll interno não vaza */
+  -webkit-overflow-scrolling: touch;
 `
 
 export const ModalClose = styled.button`
