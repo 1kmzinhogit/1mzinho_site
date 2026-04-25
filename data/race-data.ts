@@ -36,14 +36,14 @@ export const raceKits: RaceKit[] = [
   },
   {
     id: '10km-lote1',
-    raceName: 'Maratona 10K',
-    distance: '10km',
+    raceName: 'Corrida manos e manas',
+    distance: '5km',
     price: 129.90,
     lot: 1,
     availableSlots: 150,
     soldSlots: 145,
-    description: 'Para corredores experientes',
-    img: "/teste.png"
+    description: 'Corrida manos e manas, venha fazer parte dessa festa de corrida e inclusão',
+    img: "/bannerManosManas.png"
   },
   {
     id: '21km-lote1',

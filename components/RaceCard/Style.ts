@@ -93,6 +93,13 @@ export const RaceName = styled.h3`
   margin-bottom: 0.5rem;
 `
 
+export const BannerCorrida = styled.img`
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+`
+
 export const Description = styled.p`
   color: rgba(255, 255, 255, 0.75);
   font-size: 0.9rem;

@@ -13,7 +13,7 @@ import {
   ButtonGroup, ActionButton, Message, ModalOverlay, ModalContent, ModalClose, ModalTitle,
   ModalSubtitle, PriceTag, SizeSelector, SizeButton, ShoeNumberInput, ConfirmButton,
   GenderSelector, GenderButton, ElderlyCheckbox, TeamNameInput, ColorSelector, ColorButton, ColorLabel,
-  ProgressBarContainer, ProgressBarFill, ProgressLabel
+  ProgressBarContainer, ProgressBarFill, ProgressLabel, BannerCorrida
 } from './Style'
 
 
@@ -187,7 +187,9 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
           </FeaturedBadge>
         )}
         
+        {/* aqui */}
         <Distance>{kit.distance}</Distance>
+        <BannerCorrida src={kit.img}/>
         <RaceName>{kit.raceName}</RaceName>
         <Description>{kit.description}</Description>
         
