@@ -16,31 +16,17 @@ import {
   ProgressBarContainer, ProgressBarFill, ProgressLabel, BannerCorrida,
 } from './Style'
 
-// ─── Hook: trava o scroll do body enquanto o modal está aberto ────────────────
+// ─── Hook: trava só o overflow do body ───────────────────────────────────────
 
 function useScrollLock(isLocked: boolean) {
   useEffect(() => {
-    if (!isLocked) {
+    if (isLocked) {
+      document.body.style.overflow = 'hidden'
+    } else {
       document.body.style.overflow = ''
-      document.body.style.touchAction = ''
-      return
     }
-
-    // Salva a posição atual para não pular ao destravat
-    const scrollY = window.scrollY
-    document.body.style.overflow = 'hidden'
-    document.body.style.touchAction = 'none'
-    document.body.style.top = `-${scrollY}px`
-    document.body.style.position = 'fixed'
-    document.body.style.width = '100%'
-
     return () => {
       document.body.style.overflow = ''
-      document.body.style.touchAction = ''
-      document.body.style.position = ''
-      document.body.style.top = ''
-      document.body.style.width = ''
-      window.scrollTo(0, scrollY)
     }
   }, [isLocked])
 }
@@ -98,7 +84,6 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
     userData: null,
   })
 
-  // Trava o scroll do body enquanto o modal estiver aberto
   useScrollLock(modal.isOpen)
 
   // ── Formatters ───────────────────────────────────────────────────────────────
@@ -134,13 +119,11 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
 
   const handleSubscribe = () => {
     if (!isFormValid) { showValidationError(); return }
-
     setState(prev => ({
       ...prev,
       subscribeSuccess: true,
       message: { type: 'success', text: 'Inscrição realizada com sucesso! Aguarde confirmação por e-mail.' },
     }))
-
     window.setTimeout(() => {
       setState({ name: '', email: '', cpf: '', phone: '', message: null, subscribeSuccess: false })
     }, 3000)
@@ -148,7 +131,6 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
 
   const handleBuyClick = () => {
     if (!isFormValid) { showValidationError(); return }
-
     setModal({
       isOpen: true,
       size: 'M',
@@ -181,7 +163,6 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
       kitColor: modal.kitColor,
       amount: modal.kit?.price,
     }
-
     sessionStorage.setItem('pendingPayment', JSON.stringify(paymentData))
     router.push('/pagamento/processar')
   }
@@ -208,7 +189,6 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
             <LotBadge>Lote {kit.lot}</LotBadge>
             <Slots>{kit.availableSlots} vagas disponíveis</Slots>
           </LotHeader>
-
           {kit.soldSlots !== undefined && (
             <>
               <ProgressBarContainer>
@@ -284,7 +264,6 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
               <><UserPlus size={18} />Inscrever</>
             )}
           </ActionButton>
-
           <ActionButton $variant="buy" onClick={handleBuyClick} disabled={!isFormValid}>
             <CreditCard size={18} />
             Comprar Kit
@@ -423,7 +402,6 @@ export default function RaceCards() {
             Selecione a distância ideal para você e garanta seu kit com a camisa oficial do evento
           </SectionSubtitle>
         </SectionHeader>
-
         <Grid>
           {raceKits.map((kit, index) => (
             <RaceCard key={kit.id} kit={kit} featured={index === 2} />

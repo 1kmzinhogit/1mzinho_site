@@ -200,6 +200,7 @@ export const Input = styled.input`
   color: #fff;
   font-size: 0.95rem;
   transition: all 0.2s;
+  box-sizing: border-box;
   
   &:focus {
     outline: none;
@@ -274,38 +275,52 @@ export const Message = styled.div<{ $type: 'error' | 'success' }>`
   border: 1px solid ${({ $type }) => $type === 'error' ? 'rgba(231, 76, 60, 0.3)' : 'rgba(39, 174, 96, 0.3)'};
 `
 
-// Modal de compra com tamanho de camisa
+/* ── Modal ─────────────────────────────────────────────────────────────────── */
+
 export const ModalOverlay = styled.div<{ $isOpen: boolean }>`
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(5px);
   z-index: 1000;
   display: flex;
-  align-items: center;
+
+  /* Mobile: bottom sheet que sobe de baixo */
+  align-items: flex-end;
   justify-content: center;
-  opacity: ${({ $isOpen }) => $isOpen ? 1 : 0};
-  visibility: ${({ $isOpen }) => $isOpen ? 'visible' : 'hidden'};
-  transition: all 0.3s ease;
-  padding: 1rem;
-  overflow-y: auto;
-  overscroll-behavior: contain;   /* ← impede o scroll vazar pro fundo */
-  touch-action: none; 
+
+  opacity: ${({ $isOpen }) => ($isOpen ? 1 : 0)};
+  visibility: ${({ $isOpen }) => ($isOpen ? 'visible' : 'hidden')};
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+
+  /* Desktop: centralizado */
+  @media (min-width: 640px) {
+    align-items: center;
+    padding: 1rem;
+  }
 `
 
 export const ModalContent = styled.div`
   background: linear-gradient(145deg, #0b1f4a 0%, #081638 100%);
-  border-radius: 20px;
-  padding: 2rem;
-  max-width: 400px;
   width: 100%;
   border: 1px solid rgba(255, 255, 255, 0.25);
   position: relative;
-  overscroll-behavior: contain;   /* ← scroll interno não vaza */
+
+  /* Mobile: bottom sheet */
+  border-radius: 20px 20px 0 0;
+  padding: 1.5rem 1.5rem 2rem;
+  max-height: 92dvh;          /* dvh respeita a barra do browser no iOS */
+  overflow-y: auto;
+  overscroll-behavior: contain; /* scroll interno não vaza pro fundo */
   -webkit-overflow-scrolling: touch;
+
+  /* Desktop: modal centralizado */
+  @media (min-width: 640px) {
+    max-width: 400px;
+    border-radius: 20px;
+    padding: 2rem;
+    max-height: 90vh;
+  }
 `
 
 export const ModalClose = styled.button`
