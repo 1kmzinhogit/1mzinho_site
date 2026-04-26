@@ -14,6 +14,7 @@ export interface RaceKit {
   soldSlots?: number // vagas já vendidas (para calcular % do lote)
   description: string
   img?: string
+  // dataNascimento: string
 }
 
 export interface CartItem {
@@ -22,6 +23,7 @@ export interface CartItem {
   participantName: string
   participantEmail: string
   participantCpf: string
+  participantDataNascimento: string
 }
 
 export interface Sponsor {

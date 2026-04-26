@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, AlertCircle, Zap, UserPlus, CreditCard, X } from 'lucide-react'
+import { Check, AlertCircle, Zap, UserPlus, CreditCard, X, Calendar } from 'lucide-react'
 import { raceKits } from '@/data/race-data'
 import type { RaceKit, ShirtSize, GenderCategory } from '@/types/race'
 import { loadMercadoPago } from '@mercadopago/sdk-js'
@@ -38,6 +38,7 @@ interface CardState {
   email: string
   cpf: string
   phone: string
+  dataNascimento: string
   message: { type: 'error' | 'success'; text: string } | null
   subscribeSuccess: boolean
 }
@@ -68,6 +69,7 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
     email: '',
     cpf: '',
     phone: '',
+    dataNascimento: '',
     message: null,
     subscribeSuccess: false,
   })
@@ -125,7 +127,7 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
       message: { type: 'success', text: 'Inscrição realizada com sucesso! Aguarde confirmação por e-mail.' },
     }))
     window.setTimeout(() => {
-      setState({ name: '', email: '', cpf: '', phone: '', message: null, subscribeSuccess: false })
+      setState({ name: '', email: '', cpf: '', phone: '', message: null, subscribeSuccess: false, dataNascimento: '' })
     }, 3000)
   }
 
@@ -228,6 +230,16 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
             onChange={e => setState(prev => ({ ...prev, email: e.target.value }))}
           />
         </FormGroup>
+        
+        {/* <FormGroup>
+          <Label>Data de Nascimento</Label>
+          <Input
+            type="date"
+            value={state.dataNascimento}
+            onChange={e => setState(prev => ({ ...prev, dataNascimento: e.target.value }))}
+          />
+        </FormGroup> */}
+
 
         <FormGroup>
           <Label>CPF</Label>
@@ -238,6 +250,19 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
             onChange={e => setState(prev => ({ ...prev, cpf: formatCpf(e.target.value) }))}
             maxLength={14}
           />
+        </FormGroup>
+
+        <FormGroup>
+          <Label>Data de Nascimento</Label>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <Input
+              type="date"
+              value={state.dataNascimento}
+              onChange={e => setState(prev => ({ ...prev, dataNascimento: e.target.value }))}
+              style={{ paddingRight: '40px' }}
+            />
+            <Calendar size={18} style={{ position: 'absolute', right: '12px', color: '#666', pointerEvents: 'none' }} />
+          </div>
         </FormGroup>
 
         <FormGroup>
@@ -333,7 +358,7 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
             </SizeSelector>
           </FormGroup>
 
-          <ShoeNumberInput>
+          {/* <ShoeNumberInput>
             <Label>Numeração (opcional)</Label>
             <Input
               type="text"
@@ -345,7 +370,7 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
               }))}
               maxLength={2}
             />
-          </ShoeNumberInput>
+          </ShoeNumberInput> */}
 
           <TeamNameInput>
             <Label>Nome da Equipe (opcional)</Label>

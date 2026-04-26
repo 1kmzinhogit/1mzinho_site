@@ -42,7 +42,7 @@ export const raceKits: RaceKit[] = [
     lot: 1,
     availableSlots: 150,
     soldSlots: 145,
-    description: 'Corrida manos e manas, venha fazer parte dessa festa de corrida e inclusão',
+    description: 'Corrida manos e manas, venha fazer',
     img: "/bannerManosManas.png"
   },
   {
