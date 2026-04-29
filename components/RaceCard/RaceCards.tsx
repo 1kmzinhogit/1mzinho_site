@@ -52,7 +52,7 @@ interface ModalState {
   teamName: string
   kitColor: string
   kit: RaceKit | null
-  userData: { name: string; email: string; cpf: string; phone: string } | null
+  userData: { name: string; email: string; cpf: string; phone: string; dataNascimento: string } | null
 }
 
 // ─── RaceCard ─────────────────────────────────────────────────────────────────
@@ -108,6 +108,7 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
   const isFormValid =
     Boolean(state.name.trim()) &&
     Boolean(state.email.trim()) &&
+    Boolean(state.dataNascimento) &&
     state.cpf.replace(/\D/g, '').length === 11 &&
     state.phone.replace(/\D/g, '').length >= 10
 
@@ -147,6 +148,7 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
         email: state.email,
         cpf: state.cpf,
         phone: state.phone,
+        dataNascimento: state.dataNascimento,
       },
     })
   }

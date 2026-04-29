@@ -71,40 +71,53 @@ function ProcessPaymentContent() {
   const [paymentData, setPaymentData] = useState<Record<string, unknown> | null>(null)
 
   useEffect(() => {
-    // Lê do sessionStorage — dados nunca ficam expostos na URL
-    const raw = sessionStorage.getItem('pendingPayment')
+    const processPayment = async () => {
+      // Lê do sessionStorage — dados nunca ficam expostos na URL
+      const raw = sessionStorage.getItem('pendingPayment')
 
-    if (!raw) {
-      router.push('/')
-      return
+      if (!raw) {
+        router.push('/')
+        return
+      }
+
+      try {
+        const parsed = JSON.parse(raw) as Record<string, unknown>
+        setPaymentData(parsed)
+
+        const response = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(parsed),
+        })
+
+        const checkout = await response.json() as {
+          linkPagamento?: string
+          erro?: string
+          message?: string
+          detail?: string
+        }
+
+        if (!response.ok) {
+          const message = checkout.detail
+            ? `${checkout.erro ?? checkout.message ?? 'Erro ao criar checkout'}: ${checkout.detail}`
+            : checkout.erro ?? checkout.message ?? 'Erro ao criar checkout'
+
+          throw new Error(message)
+        }
+
+        if (!checkout.linkPagamento) {
+          throw new Error('Link de pagamento não retornado pela API.')
+        }
+
+        sessionStorage.removeItem('pendingPayment')
+        window.location.href = checkout.linkPagamento
+      } catch (error) {
+        console.error('Erro no processamento do pagamento:', error)
+        router.push('/pagamento/status?status=error')
+      }
     }
 
-    try {
-      const parsed = JSON.parse(raw) as Record<string, unknown>
-      sessionStorage.removeItem('pendingPayment') // limpa após ler
-      setPaymentData(parsed)
-
-      // TODO: Criar preferência no backend e redirecionar para o Mercado Pago
-      //
-      // const response = await fetch('/api/mercadopago/create-preference', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(parsed),
-      // })
-      // const { init_point } = await response.json()
-      // window.location.href = init_point
-
-      // ── Simulação — remova quando integrar o Mercado Pago ──
-      window.setTimeout(() => {
-        const statuses = ['success', 'pending', 'error']
-        const status = statuses[Math.floor(Math.random() * statuses.length)]
-        router.push(`/pagamento/status?status=${status}&payment_id=MP-${Date.now()}`)
-      }, 3000)
-      // ── fim da simulação ──
-
-    } catch {
-      router.push('/')
-    }
+    processPayment()
   }, [router])
 
   return (

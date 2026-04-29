@@ -10,7 +10,7 @@ export const raceKits: RaceKit[] = [
     availableSlots: 100,
     soldSlots: 25,
     description: 'Corrida especial para crianças de 5 a 10 anos',
-    img: "/teste.png"
+    img: "/banner.png"
   },
   {
     id: '3km-lote1',
@@ -21,7 +21,7 @@ export const raceKits: RaceKit[] = [
     availableSlots: 200,
     soldSlots: 150,
     description: 'Ideal para iniciantes e caminhada',
-    img: "/teste.png"
+    img: "/banner2.png"
   },
   {
     id: '5km-lote1',
@@ -32,7 +32,7 @@ export const raceKits: RaceKit[] = [
     availableSlots: 300,
     soldSlots: 280,
     description: 'Percurso intermediário para todos os níveis',
-    img: "/teste.png"
+    img: "/banner3.png"
   },
   {
     id: '10km-lote1',
@@ -54,7 +54,18 @@ export const raceKits: RaceKit[] = [
     availableSlots: 100,
     soldSlots: 60,
     description: 'O desafio dos verdadeiros atletas',
-    img: "/teste.png"
+    img: "/banner.png"
+  },
+  {
+    id: 'teste-compra-lote1',
+    raceName: 'Teste de Compra',
+    distance: '5km',
+    price: 1,
+    lot: 1,
+    availableSlots: 50,
+    soldSlots: 0,
+    description: 'Card de teste para validar compras no Mercado Pago',
+    img: "/bannerManosManas.png"
   }
 ]
 
