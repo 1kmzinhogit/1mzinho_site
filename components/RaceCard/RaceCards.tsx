@@ -80,6 +80,10 @@ function RaceCard({
   const initialKitColor = kitColors[0]?.color ?? '#d7ff32'
   const documents = kit.documents ?? []
   const isDocumentsOpen = openDocumentsKitId === kit.id
+  const totalSlots = Math.max(kit.availableSlots, 0)
+  const soldSlots = Math.min(Math.max(kit.soldSlots ?? 0, 0), totalSlots)
+  const remainingSlots = Math.max(totalSlots - soldSlots, 0)
+  const soldPercentage = totalSlots > 0 ? Math.round((soldSlots / totalSlots) * 100) : 0
 
   useEffect(() => {
     void loadMercadoPago()
@@ -206,7 +210,7 @@ function RaceCard({
 
   const handleConfirmPurchase = () => {
     const paymentData = {
-      kit: modal.kit,
+      kitId: modal.kit?.id,
       user: modal.userData,
       shirtSize: modal.size,
       gender: modal.gender,
@@ -214,7 +218,6 @@ function RaceCard({
       shoeNumber: modal.shoeNumber,
       teamName: modal.teamName,
       kitColor: modal.kitColor,
-      amount: modal.kit?.price,
     }
     sessionStorage.setItem('pendingPayment', JSON.stringify(paymentData))
     router.push('/pagamento/processar')
@@ -240,19 +243,19 @@ function RaceCard({
         <LotInfo>
           <LotHeader>
             <LotBadge>Lote {kit.lot}</LotBadge>
-            <Slots>{kit.availableSlots} vagas disponíveis</Slots>
+            <Slots>{remainingSlots} vagas disponíveis</Slots>
           </LotHeader>
           {kit.soldSlots !== undefined && (
             <>
               <ProgressBarContainer>
                 <ProgressBarFill
-                  $percentage={Math.min((kit.soldSlots / kit.availableSlots) * 100, 100)}
-                  $critical={(kit.soldSlots / kit.availableSlots) >= 0.9}
+                  $percentage={soldPercentage}
+                  $critical={soldPercentage >= 90}
                 />
               </ProgressBarContainer>
               <ProgressLabel>
-                <span>{kit.soldSlots} vendidas</span>
-                <span>{Math.round((kit.soldSlots / kit.availableSlots) * 100)}% ocupado</span>
+                <span>{soldSlots} vendidas</span>
+                <span>{soldPercentage}% ocupado</span>
               </ProgressLabel>
             </>
           )}

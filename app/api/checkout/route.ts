@@ -1,16 +1,11 @@
 import { NextResponse } from 'next/server'
+import { raceKits } from '@/data/race-data'
+import type { RaceKit } from '@/types/race'
 
 const API_BASE_URL = (process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'https://api-1kmzinho.onrender.com').replace(/\/$/, '')
 
 type FrontendCheckoutPayload = {
-  kit?: {
-    id?: string
-    raceName?: string
-    distance?: string
-    price?: number
-    lot?: number
-    lote?: string
-  }
+  kitId?: string
   user?: {
     name?: string
     email?: string
@@ -25,7 +20,6 @@ type FrontendCheckoutPayload = {
   teamName?: string
   shirtNumber?: string
   shoeNumber?: string
-  amount?: number
 }
 
 function normalizarCategoria(gender?: string, isElderly?: boolean) {
@@ -38,16 +32,27 @@ function normalizarCategoria(gender?: string, isElderly?: boolean) {
   return 'MASCULINO'
 }
 
+function buscarKitConfiavel(kitId?: string): RaceKit {
+  const kit = raceKits.find(item => item.id === kitId)
+
+  if (!kit) {
+    throw new Error('Evento/kit selecionado nao foi encontrado.')
+  }
+
+  return kit
+}
+
 function criarPayloadApi(dados: FrontendCheckoutPayload) {
-  const valor = dados.amount ?? dados.kit?.price ?? 0
-  const nomeEvento = dados.kit?.raceName ?? ''
-  const distancia = dados.kit?.distance ?? ''
+  const kit = buscarKitConfiavel(dados.kitId)
+  const valor = kit.price
+  const nomeEvento = kit.raceName
+  const distancia = kit.distance
 
   return {
     cpf: dados.user?.cpf,
     nomeEvento,
     contato: dados.user?.phone,
-    lote: dados.kit?.lote ?? `Lote ${dados.kit?.lot ?? 1}`,
+    lote: `Lote ${kit.lot}`,
     valorIngresso: valor,
     nomeNaCamisa: dados.user?.name,
     dataNascimento: dados.user?.dataNascimento,
@@ -58,7 +63,7 @@ function criarPayloadApi(dados: FrontendCheckoutPayload) {
     numeroCamisa: dados.shirtNumber ?? dados.shoeNumber ?? '',
     itens: [
       {
-        id: dados.kit?.id,
+        id: kit.id,
         titulo: `${nomeEvento} - ${distancia}`,
         quantidade: 1,
         valor_unitario: valor,
@@ -70,7 +75,18 @@ function criarPayloadApi(dados: FrontendCheckoutPayload) {
 export async function POST(request: Request) {
   try {
     const dados = await request.json() as FrontendCheckoutPayload
-    const payload = criarPayloadApi(dados)
+    let payload: ReturnType<typeof criarPayloadApi>
+
+    try {
+      payload = criarPayloadApi(dados)
+    } catch (error) {
+      return NextResponse.json(
+        {
+          erro: error instanceof Error ? error.message : 'Dados de checkout invalidos.',
+        },
+        { status: 400 },
+      )
+    }
 
     const response = await fetch(`${API_BASE_URL}/checkout`, {
       method: 'POST',
