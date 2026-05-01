@@ -3,6 +3,10 @@ export type GenderCategory = 'Masculino' | 'Feminino' | 'LGBTQIA+' | '60+'
 export type RaceDistance = '1km' | '3km' | '5km' | '10km' | '21km'
 export type Modalidade = 'Masculino' | 'Feminino' | 'Mista' | '60+' | 'PCD' | 'LGBTQIA+' 
 
+export interface KitColor {
+  color: string
+  name: string
+}
 
 export interface RaceKit {
   id: string
@@ -14,6 +18,7 @@ export interface RaceKit {
   soldSlots?: number // vagas já vendidas (para calcular % do lote)
   description: string
   img?: string
+  kitColors?: KitColor[]
   // dataNascimento: string
 }
 

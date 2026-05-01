@@ -54,7 +54,12 @@ export const raceKits: RaceKit[] = [
     availableSlots: 100,
     soldSlots: 60,
     description: 'O desafio dos verdadeiros atletas',
-    img: "/banner.png"
+    img: "/banner.png",
+    kitColors: [
+      { color: '#d7ff32', name: 'Amarelo neon' },
+      { color: '#ffffff', name: 'Branco' },
+      { color: '#081638', name: 'Azul marinho' },
+    ],
   },
   {
     id: 'teste-compra-lote1',
@@ -65,7 +70,13 @@ export const raceKits: RaceKit[] = [
     availableSlots: 50,
     soldSlots: 0,
     description: 'Card de teste para validar compras no Mercado Pago',
-    img: "/bannerManosManas.png"
+    img: "/bannerManosManas.png",
+    kitColors: [
+      { color: '#000000', name: 'Preto' },
+      { color: '#ff6b6b', name: 'Vermelho' },
+      { color: '#4ecdc4', name: 'Azul' },
+      { color: '#9b59b6', name: 'Roxo' },
+    ],
   }
 ]
 

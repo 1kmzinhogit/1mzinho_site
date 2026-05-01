@@ -16,6 +16,12 @@ import {
   ProgressBarContainer, ProgressBarFill, ProgressLabel, BannerCorrida,
 } from './Style'
 
+const defaultKitColors = [
+  { color: '#d7ff32', name: 'Amarelo' },
+  { color: '#ffffff', name: 'Branco' },
+  { color: '#000000', name: 'Preto' },
+]
+
 // ─── Hook: trava só o overflow do body ───────────────────────────────────────
 
 function useScrollLock(isLocked: boolean) {
@@ -60,6 +66,8 @@ interface ModalState {
 
 function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean }) {
   const router = useRouter()
+  const kitColors = kit.kitColors?.length ? kit.kitColors : defaultKitColors
+  const initialKitColor = kitColors[0]?.color ?? '#d7ff32'
 
   useEffect(() => {
     void loadMercadoPago()
@@ -83,7 +91,7 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
     isElderly: false,
     shoeNumber: '',
     teamName: '',
-    kitColor: '#d7ff32',
+    kitColor: initialKitColor,
     kit: null,
     userData: null,
   })
@@ -170,7 +178,7 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
       isElderly: false,
       shoeNumber: '',
       teamName: '',
-      kitColor: '#d7ff32',
+      kitColor: initialKitColor,
       kit,
       userData: {
         name: state.name,
@@ -426,14 +434,7 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
           <FormGroup>
             <ColorLabel>Cor do Kit</ColorLabel>
             <ColorSelector>
-              {[
-                { color: '#d7ff32', name: 'Amarelo' },
-                { color: '#ffffff', name: 'Branco' },
-                { color: '#000000', name: 'Preto' },
-                { color: '#ff6b6b', name: 'Vermelho' },
-                { color: '#4ecdc4', name: 'Azul' },
-                { color: '#9b59b6', name: 'Roxo' },
-              ].map(({ color, name }) => (
+              {kitColors.map(({ color, name }) => (
                 <ColorButton
                   key={color}
                   type="button"
