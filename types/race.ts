@@ -8,6 +8,11 @@ export interface KitColor {
   name: string
 }
 
+export interface RaceDocument {
+  label: string
+  href: string
+}
+
 export interface RaceKit {
   id: string
   raceName: string
@@ -19,6 +24,7 @@ export interface RaceKit {
   description: string
   img?: string
   kitColors?: KitColor[]
+  documents?: RaceDocument[]
   // dataNascimento: string
 }
 

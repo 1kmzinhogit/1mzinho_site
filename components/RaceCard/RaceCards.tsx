@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, AlertCircle, Zap, UserPlus, CreditCard, X, Calendar } from 'lucide-react'
+import { Check, AlertCircle, Zap, UserPlus, CreditCard, X, Calendar, FileText, ChevronDown, ExternalLink } from 'lucide-react'
 import { raceKits } from '@/data/race-data'
 import type { RaceKit, ShirtSize, GenderCategory } from '@/types/race'
 import { loadMercadoPago } from '@mercadopago/sdk-js'
@@ -13,7 +13,7 @@ import {
   ButtonGroup, ActionButton, Message, ModalOverlay, ModalContent, ModalClose, ModalTitle,
   ModalSubtitle, PriceTag, SizeSelector, SizeButton, ShoeNumberInput, ConfirmButton,
   GenderSelector, GenderButton, ElderlyCheckbox, TeamNameInput, ColorSelector, ColorButton, ColorLabel,
-  ProgressBarContainer, ProgressBarFill, ProgressLabel, BannerCorrida,
+  ProgressBarContainer, ProgressBarFill, ProgressLabel, BannerCorrida, DocumentsPanel, DocumentLink, DocumentButtonRow,
 } from './Style'
 
 const defaultKitColors = [
@@ -64,10 +64,22 @@ interface ModalState {
 
 // ─── RaceCard ─────────────────────────────────────────────────────────────────
 
-function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean }) {
+function RaceCard({
+  kit,
+  featured = false,
+  openDocumentsKitId,
+  onToggleDocuments,
+}: {
+  kit: RaceKit
+  featured?: boolean
+  openDocumentsKitId: string | null
+  onToggleDocuments: (kitId: string) => void
+}) {
   const router = useRouter()
   const kitColors = kit.kitColors?.length ? kit.kitColors : defaultKitColors
   const initialKitColor = kitColors[0]?.color ?? '#d7ff32'
+  const documents = kit.documents ?? []
+  const isDocumentsOpen = openDocumentsKitId === kit.id
 
   useEffect(() => {
     void loadMercadoPago()
@@ -327,6 +339,7 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
 
         <ButtonGroup>
           <ActionButton
+            type="button"
             $variant="subscribe"
             $success={state.subscribeSuccess}
             onClick={handleSubscribe}
@@ -338,11 +351,41 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
               <><UserPlus size={18} />Inscrever</>
             )}
           </ActionButton>
-          <ActionButton $variant="buy" onClick={handleBuyClick} disabled={!isFormValid}>
+          <ActionButton type="button" $variant="buy" onClick={handleBuyClick} disabled={!isFormValid}>
             <CreditCard size={18} />
             Comprar Kit
           </ActionButton>
         </ButtonGroup>
+
+        {documents.length > 0 && (
+          <DocumentButtonRow>
+            <ActionButton
+              type="button"
+              $variant="docs"
+              $expanded={isDocumentsOpen}
+              onClick={() => onToggleDocuments(kit.id)}
+              aria-expanded={isDocumentsOpen}
+            >
+              <FileText size={18} />
+              PDFs
+              <ChevronDown size={16} />
+            </ActionButton>
+          </DocumentButtonRow>
+        )}
+
+        {documents.length > 0 && (
+          <DocumentsPanel $open={isDocumentsOpen}>
+            {documents.map(document => (
+              <DocumentLink key={document.href} href={document.href} target="_blank" rel="noreferrer">
+                <span>
+                  <FileText size={16} />
+                  {document.label}
+                </span>
+                <ExternalLink size={15} />
+              </DocumentLink>
+            ))}
+          </DocumentsPanel>
+        )}
 
         {state.message && (
           <Message $type={state.message.type}>
@@ -460,6 +503,12 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
 // ─── RaceCards (export default) ───────────────────────────────────────────────
 
 export default function RaceCards() {
+  const [openDocumentsKitId, setOpenDocumentsKitId] = useState<string | null>(null)
+
+  const handleToggleDocuments = (kitId: string) => {
+    setOpenDocumentsKitId(currentKitId => currentKitId === kitId ? null : kitId)
+  }
+
   return (
     <Section id="corridas">
       <Container>
@@ -471,7 +520,13 @@ export default function RaceCards() {
         </SectionHeader>
         <Grid>
           {raceKits.map((kit, index) => (
-            <RaceCard key={kit.id} kit={kit} featured={index === 2} />
+            <RaceCard
+              key={kit.id}
+              kit={kit}
+              featured={index === 2}
+              openDocumentsKitId={openDocumentsKitId}
+              onToggleDocuments={handleToggleDocuments}
+            />
           ))}
         </Grid>
       </Container>

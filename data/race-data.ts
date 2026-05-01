@@ -60,6 +60,11 @@ export const raceKits: RaceKit[] = [
       { color: '#ffffff', name: 'Branco' },
       { color: '#081638', name: 'Azul marinho' },
     ],
+    documents: [
+      { label: 'Regulamento da corrida', href: '/pdfs/meia-maratona-regulamento.pdf' },
+      { label: 'Informações dos kits', href: '/pdfs/meia-maratona-kits.pdf' },
+      { label: 'Como retirar o kit', href: '/pdfs/meia-maratona-retirada.pdf' },
+    ],
   },
   {
     id: 'teste-compra-lote1',
@@ -76,6 +81,11 @@ export const raceKits: RaceKit[] = [
       { color: '#ff6b6b', name: 'Vermelho' },
       { color: '#4ecdc4', name: 'Azul' },
       { color: '#9b59b6', name: 'Roxo' },
+    ],
+    documents: [
+      { label: 'Regulamento da corrida', href: '/pdfs/teste-compra-regulamento.pdf' },
+      { label: 'Informações dos kits', href: '/pdfs/teste-compra-kits.pdf' },
+      { label: 'Como retirar o kit', href: '/pdfs/teste-compra-retirada.pdf' },
     ],
   }
 ]

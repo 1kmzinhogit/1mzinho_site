@@ -39,7 +39,7 @@ export const Grid = styled.div`
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 380px));
   gap: 2rem;
   justify-content: center;
-  align-items: stretch;
+  align-items: start;
 `
 
 export const Card = styled.div<{ $featured?: boolean }>`
@@ -49,7 +49,6 @@ export const Card = styled.div<{ $featured?: boolean }>`
   width: 100%;
   max-width: 380px;
   box-sizing: border-box;
-  min-height: 100%;
   display: flex;
   flex-direction: column;
   border: 1px solid ${({ $featured }) => $featured ? 'rgba(215, 255, 50, 0.5)' : 'rgba(255, 255, 255, 0.2)'};
@@ -248,7 +247,11 @@ export const ButtonGroup = styled.div`
   }
 `
 
-export const ActionButton = styled.button<{ $variant: 'subscribe' | 'buy'; $success?: boolean }>`
+export const DocumentButtonRow = styled.div`
+  padding-top: 0.75rem;
+`
+
+export const ActionButton = styled.button<{ $variant: 'subscribe' | 'buy' | 'docs'; $success?: boolean; $expanded?: boolean }>`
   flex: 1;
   display: flex;
   align-items: center;
@@ -256,15 +259,17 @@ export const ActionButton = styled.button<{ $variant: 'subscribe' | 'buy'; $succ
   gap: 0.5rem;
   background: ${({ $variant, $success }) => {
     if ($success) return '#d7ff32';
+    if ($variant === 'docs') return 'rgba(8, 22, 56, 0.75)';
     return $variant === 'subscribe' 
       ? 'rgba(255, 255, 255, 0.08)' 
       : 'linear-gradient(135deg, rgba(215, 255, 50, 0.25) 0%, rgba(255, 255, 255, 0.2) 100%)';
   }};
   color: ${({ $variant, $success }) => {
     if ($success) return '#081638';
+    if ($variant === 'docs') return '#ffffff';
     return $variant === 'subscribe' ? '#ffffff' : '#d7ff32';
   }};
-  border: ${({ $variant }) => $variant === 'subscribe' ? '1px solid rgba(255, 255, 255, 0.6)' : '1px solid rgba(215, 255, 50, 0.45)'};
+  border: ${({ $variant }) => $variant === 'buy' ? '1px solid rgba(215, 255, 50, 0.45)' : '1px solid rgba(255, 255, 255, 0.45)'};
   padding: 1rem;
   border-radius: 10px;
   font-weight: 700;
@@ -280,6 +285,9 @@ export const ActionButton = styled.button<{ $variant: 'subscribe' | 'buy'; $succ
     ${({ $variant }) => $variant === 'buy' && `
       background: linear-gradient(135deg, rgba(215, 255, 50, 0.35) 0%, rgba(255, 255, 255, 0.28) 100%);
     `}
+    ${({ $variant }) => $variant === 'docs' && `
+      background: rgba(255, 255, 255, 0.14);
+    `}
   }
   
   &:disabled {
@@ -288,6 +296,53 @@ export const ActionButton = styled.button<{ $variant: 'subscribe' | 'buy'; $succ
     border-color: rgba(255, 255, 255, 0.1);
     cursor: not-allowed;
     transform: none;
+  }
+
+  svg:last-child {
+    transform: ${({ $expanded }) => $expanded ? 'rotate(180deg)' : 'rotate(0deg)'};
+  }
+`
+
+export const DocumentsPanel = styled.div<{ $open: boolean }>`
+  display: grid;
+  gap: 0.6rem;
+  max-height: ${({ $open }) => $open ? '220px' : '0'};
+  opacity: ${({ $open }) => $open ? 1 : 0};
+  overflow: hidden;
+  transition: max-height 0.25s ease, opacity 0.2s ease, margin-top 0.25s ease;
+  margin-top: ${({ $open }) => $open ? '0.65rem' : '0'};
+`
+
+export const DocumentLink = styled.a`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 42px;
+  padding: 0.7rem 0.85rem;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(8, 22, 56, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  text-decoration: none;
+  font-size: 0.86rem;
+  font-weight: 600;
+  transition: all 0.2s;
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+  }
+
+  svg {
+    color: #d7ff32;
+    flex: 0 0 auto;
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(215, 255, 50, 0.55);
   }
 `
 
