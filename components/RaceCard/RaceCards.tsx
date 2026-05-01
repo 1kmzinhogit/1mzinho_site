@@ -38,6 +38,7 @@ interface CardState {
   email: string
   cpf: string
   phone: string
+  birthDateInput: string
   dataNascimento: string
   message: { type: 'error' | 'success'; text: string } | null
   subscribeSuccess: boolean
@@ -69,6 +70,7 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
     email: '',
     cpf: '',
     phone: '',
+    birthDateInput: '',
     dataNascimento: '',
     message: null,
     subscribeSuccess: false,
@@ -103,6 +105,33 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
       .replace(/(\d{5})(\d)/, '$1-$2')
       .replace(/(-\d{4})\d+?$/, '$1')
 
+  const formatBirthDate = (value: string) =>
+    value.replace(/\D/g, '')
+      .slice(0, 8)
+      .replace(/(\d{2})(\d)/, '$1/$2')
+      .replace(/(\d{2})\/(\d{2})(\d)/, '$1/$2/$3')
+
+  const birthDateToIso = (value: string) => {
+    const digits = value.replace(/\D/g, '')
+
+    if (digits.length !== 8) return ''
+
+    const day = digits.slice(0, 2)
+    const month = digits.slice(2, 4)
+    const year = digits.slice(4, 8)
+    const date = new Date(Number(year), Number(month) - 1, Number(day))
+
+    if (
+      date.getFullYear() !== Number(year) ||
+      date.getMonth() !== Number(month) - 1 ||
+      date.getDate() !== Number(day)
+    ) {
+      return ''
+    }
+
+    return `${year}-${month}-${day}`
+  }
+
   // ── Validation ───────────────────────────────────────────────────────────────
 
   const isFormValid =
@@ -128,7 +157,7 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
       message: { type: 'success', text: 'Inscrição realizada com sucesso! Aguarde confirmação por e-mail.' },
     }))
     window.setTimeout(() => {
-      setState({ name: '', email: '', cpf: '', phone: '', message: null, subscribeSuccess: false, dataNascimento: '' })
+      setState({ name: '', email: '', cpf: '', phone: '', birthDateInput: '', message: null, subscribeSuccess: false, dataNascimento: '' })
     }, 3000)
   }
 
@@ -232,17 +261,6 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
             onChange={e => setState(prev => ({ ...prev, email: e.target.value }))}
           />
         </FormGroup>
-        
-        {/* <FormGroup>
-          <Label>Data de Nascimento</Label>
-          <Input
-            type="date"
-            value={state.dataNascimento}
-            onChange={e => setState(prev => ({ ...prev, dataNascimento: e.target.value }))}
-          />
-        </FormGroup> */}
-
-
         <FormGroup>
           <Label>CPF</Label>
           <Input
@@ -258,9 +276,30 @@ function RaceCard({ kit, featured = false }: { kit: RaceKit; featured?: boolean 
           <Label>Data de Nascimento</Label>
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
             <Input
-              type="date"
-              value={state.dataNascimento}
-              onChange={e => setState(prev => ({ ...prev, dataNascimento: e.target.value }))}
+              type="text"
+              inputMode="numeric"
+              autoComplete="bday"
+              placeholder="DD/MM/AAAA"
+              value={state.birthDateInput}
+              onChange={e => {
+                const formattedDate = formatBirthDate(e.target.value)
+
+                setState(prev => ({
+                  ...prev,
+                  birthDateInput: formattedDate,
+                  dataNascimento: birthDateToIso(formattedDate),
+                }))
+              }}
+              onBlur={e => {
+                const isoDate = birthDateToIso(e.target.value)
+
+                setState(prev => ({
+                  ...prev,
+                  birthDateInput: isoDate ? prev.birthDateInput : '',
+                  dataNascimento: isoDate,
+                }))
+              }}
+              maxLength={10}
               style={{ paddingRight: '40px' }}
             />
             <Calendar size={18} style={{ position: 'absolute', right: '12px', color: '#666', pointerEvents: 'none' }} />

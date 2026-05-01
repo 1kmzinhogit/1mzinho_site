@@ -6,7 +6,7 @@ export const Section = styled.section`
 `
 
 export const Container = styled.div`
-  max-width: 1200px;
+  max-width: 1280px;
   margin: 0 auto;
   padding: 0 1.5rem;
 `
@@ -36,14 +36,22 @@ export const SectionSubtitle = styled.p`
 
 export const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 380px));
   gap: 2rem;
+  justify-content: center;
+  align-items: stretch;
 `
 
 export const Card = styled.div<{ $featured?: boolean }>`
   background: linear-gradient(145deg, #0b1f4a 0%, #081638 100%);
   border-radius: 20px;
   padding: 2rem;
+  width: 100%;
+  max-width: 380px;
+  box-sizing: border-box;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
   border: 1px solid ${({ $featured }) => $featured ? 'rgba(215, 255, 50, 0.5)' : 'rgba(255, 255, 255, 0.2)'};
   position: relative;
   overflow: hidden;
@@ -91,13 +99,26 @@ export const RaceName = styled.h3`
   font-weight: 700;
   color: #fff;
   margin-bottom: 0.5rem;
+  min-height: 3.4rem;
+  display: flex;
+  align-items: flex-start;
 `
 
 export const BannerCorrida = styled.img`
   width: 100%;
-  height: auto;
+  height: 180px;
+  max-height: 180px;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  object-position: center;
   border-radius: 10px;
   margin-bottom: 1rem;
+  display: block;
+
+  @media (max-width: 420px) {
+    height: 160px;
+    max-height: 160px;
+  }
 `
 
 export const Description = styled.p`
@@ -105,12 +126,14 @@ export const Description = styled.p`
   font-size: 0.9rem;
   margin-bottom: 1.5rem;
   line-height: 1.5;
+  min-height: 4.1rem;
 `
 
 export const LotInfo = styled.div`
   margin-bottom: 1.5rem;
   padding-bottom: 1.5rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  min-height: 5.8rem;
 `
 
 export const LotHeader = styled.div`
@@ -170,6 +193,7 @@ export const Price = styled.div`
   font-weight: 800;
   color: #fff;
   margin-bottom: 1.5rem;
+  min-height: 2.8rem;
   
   small {
     font-size: 1rem;
@@ -216,7 +240,12 @@ export const Input = styled.input`
 export const ButtonGroup = styled.div`
   display: flex;
   gap: 0.75rem;
-  margin-top: 1.5rem;
+  margin-top: auto;
+  padding-top: 1.5rem;
+
+  @media (max-width: 420px) {
+    flex-direction: column;
+  }
 `
 
 export const ActionButton = styled.button<{ $variant: 'subscribe' | 'buy'; $success?: boolean }>`
