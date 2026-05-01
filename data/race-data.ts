@@ -56,17 +56,17 @@ export const raceKits: RaceKit[] = [
   //   description: 'O desafio dos verdadeiros atletas',
   //   img: "/banner.png"
   // },
-  // {
-  //   id: 'teste-compra-lote1',
-  //   raceName: 'Teste de Compra',
-  //   distance: '5km',
-  //   price: 1,
-  //   lot: 1,
-  //   availableSlots: 50,
-  //   soldSlots: 0,
-  //   description: 'Card de teste para validar compras no Mercado Pago',
-  //   img: "/bannerManosManas.png"
-  // }
+  {
+    id: 'teste-compra-lote1',
+    raceName: 'Teste de Compra',
+    distance: '5km',
+    price: 1,
+    lot: 1,
+    availableSlots: 50,
+    soldSlots: 0,
+    description: 'Card de teste para validar compras no Mercado Pago',
+    img: "/bannerManosManas.png"
+  }
 ]
 
 export const sponsors: Sponsor[] = [

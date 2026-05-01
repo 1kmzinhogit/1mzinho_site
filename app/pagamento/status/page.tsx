@@ -5,6 +5,8 @@ import { useSearchParams } from 'next/navigation'
 import { CheckCircle, XCircle, Clock, Home, RotateCcw } from 'lucide-react'
 import { Suspense } from 'react'
 
+type PaymentStatus = 'success' | 'error' | 'pending'
+
 const PageWrapper = styled.div`
   min-height: 100vh;
   background: #0a0a0a;
@@ -170,25 +172,37 @@ const TransactionId = styled.div`
   }
 `
 
+function normalizePaymentStatus(searchParams: URLSearchParams): PaymentStatus {
+  const mercadoPagoStatus = (
+    searchParams.get('collection_status') ??
+    searchParams.get('status') ??
+    ''
+  ).toLowerCase()
+
+  if (['approved', 'success'].includes(mercadoPagoStatus)) return 'success'
+  if (['rejected', 'cancelled', 'canceled', 'failure', 'failed', 'error'].includes(mercadoPagoStatus)) return 'error'
+
+  return 'pending'
+}
+
+function getFirstParam(searchParams: URLSearchParams, keys: string[]) {
+  for (const key of keys) {
+    const value = searchParams.get(key)
+
+    if (value) return value
+  }
+
+  return null
+}
+
 function PaymentStatusContent() {
   const searchParams = useSearchParams()
-  
-  // TODO: Pegar status real do Mercado Pago
-  // Parametros que o Mercado Pago envia:
-  // - collection_status: approved, pending, rejected
-  // - payment_id: ID do pagamento
-  // - external_reference: referencia externa (pode ser o ID da inscricao)
-  
-  const status = (searchParams.get('status') as 'success' | 'error' | 'pending') || 'pending'
-  const paymentId = searchParams.get('payment_id') || 'MP-' + Math.random().toString(36).substr(2, 9).toUpperCase()
-  
-  // Dados mockados - substituir pelos dados reais vindos do Mercado Pago
-  const orderData = {
-    raceName: searchParams.get('race') || '5km - Corrida Intermediária',
-    userName: searchParams.get('name') || 'Participante',
-    shirtSize: searchParams.get('size') || 'M',
-    amount: searchParams.get('amount') || '99,90'
-  }
+
+  const status = normalizePaymentStatus(searchParams)
+  const paymentId = getFirstParam(searchParams, ['payment_id', 'collection_id'])
+  const externalReference = searchParams.get('external_reference')
+  const merchantOrderId = searchParams.get('merchant_order_id')
+  const paymentType = searchParams.get('payment_type')
 
   const statusConfig = {
     success: {
@@ -223,27 +237,31 @@ function PaymentStatusContent() {
         {status !== 'error' && (
           <Card>
             <CardTitle>Detalhes da Compra</CardTitle>
-            <InfoRow>
-              <InfoLabel>Corrida</InfoLabel>
-              <InfoValue>{orderData.raceName}</InfoValue>
-            </InfoRow>
-            <InfoRow>
-              <InfoLabel>Participante</InfoLabel>
-              <InfoValue>{orderData.userName}</InfoValue>
-            </InfoRow>
-            <InfoRow>
-              <InfoLabel>Tamanho Camisa</InfoLabel>
-              <InfoValue>{orderData.shirtSize}</InfoValue>
-            </InfoRow>
-            <InfoRow>
-              <InfoLabel>Valor</InfoLabel>
-              <InfoValue>R$ {orderData.amount}</InfoValue>
-            </InfoRow>
+            {externalReference && (
+              <InfoRow>
+                <InfoLabel>Referencia</InfoLabel>
+                <InfoValue>{externalReference}</InfoValue>
+              </InfoRow>
+            )}
+            {merchantOrderId && (
+              <InfoRow>
+                <InfoLabel>Pedido Mercado Pago</InfoLabel>
+                <InfoValue>{merchantOrderId}</InfoValue>
+              </InfoRow>
+            )}
+            {paymentType && (
+              <InfoRow>
+                <InfoLabel>Forma de Pagamento</InfoLabel>
+                <InfoValue>{paymentType}</InfoValue>
+              </InfoRow>
+            )}
             
-            <TransactionId>
-              <span>ID da Transacao</span>
-              <code>{paymentId}</code>
-            </TransactionId>
+            {paymentId && (
+              <TransactionId>
+                <span>ID da Transacao</span>
+                <code>{paymentId}</code>
+              </TransactionId>
+            )}
           </Card>
         )}
         
