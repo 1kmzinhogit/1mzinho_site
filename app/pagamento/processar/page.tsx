@@ -1,7 +1,7 @@
 'use client'
 
 import styled from 'styled-components'
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useRef, useState, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 
@@ -68,10 +68,14 @@ const DebugInfo = styled.div`
 
 function ProcessPaymentContent() {
   const router = useRouter()
+  const hasProcessedPayment = useRef(false)
   const [paymentData, setPaymentData] = useState<Record<string, unknown> | null>(null)
 
   useEffect(() => {
     const processPayment = async () => {
+      if (hasProcessedPayment.current) return
+      hasProcessedPayment.current = true
+
       // Lê do sessionStorage — dados nunca ficam expostos na URL
       const raw = sessionStorage.getItem('pendingPayment')
 
@@ -88,10 +92,14 @@ function ProcessPaymentContent() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(parsed),
+          signal: AbortSignal.timeout(30000),
         })
 
         const checkout = await response.json() as {
           linkPagamento?: string
+          init_point?: string
+          sandbox_init_point?: string
+          url?: string
           erro?: string
           message?: string
           detail?: string
@@ -105,12 +113,14 @@ function ProcessPaymentContent() {
           throw new Error(message)
         }
 
-        if (!checkout.linkPagamento) {
+        const paymentUrl = checkout.linkPagamento ?? checkout.init_point ?? checkout.sandbox_init_point ?? checkout.url
+
+        if (!paymentUrl) {
           throw new Error('Link de pagamento não retornado pela API.')
         }
 
         sessionStorage.removeItem('pendingPayment')
-        window.location.href = checkout.linkPagamento
+        window.location.assign(paymentUrl)
       } catch (error) {
         console.error('Erro no processamento do pagamento:', error)
         router.push('/pagamento/status?status=error')
