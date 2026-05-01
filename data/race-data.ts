@@ -45,17 +45,17 @@ export const raceKits: RaceKit[] = [
   //   description: 'Corrida manos e manas, venha fazer',
   //   img: "/bannerManosManas.png"
   // },
-  // {
-  //   id: '21km-lote1',
-  //   raceName: 'Meia Maratona',
-  //   distance: '21km',
-  //   price: 189.90,
-  //   lot: 1,
-  //   availableSlots: 100,
-  //   soldSlots: 60,
-  //   description: 'O desafio dos verdadeiros atletas',
-  //   img: "/banner.png"
-  // },
+  {
+    id: '21km-lote1',
+    raceName: 'Meia Maratona',
+    distance: '21km',
+    price: 0.50,
+    lot: 1,
+    availableSlots: 100,
+    soldSlots: 60,
+    description: 'O desafio dos verdadeiros atletas',
+    img: "/banner.png"
+  },
   {
     id: 'teste-compra-lote1',
     raceName: 'Teste de Compra',
