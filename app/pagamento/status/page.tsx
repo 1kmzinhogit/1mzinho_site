@@ -203,6 +203,7 @@ function PaymentStatusContent() {
   const externalReference = searchParams.get('external_reference')
   const merchantOrderId = searchParams.get('merchant_order_id')
   const paymentType = searchParams.get('payment_type')
+  const errorMessage = searchParams.get('message')
 
   const statusConfig = {
     success: {
@@ -232,7 +233,7 @@ function PaymentStatusContent() {
         </IconWrapper>
         
         <Title $status={status}>{config.title}</Title>
-        <Description>{config.description}</Description>
+        <Description>{status === 'error' && errorMessage ? errorMessage : config.description}</Description>
         
         {status !== 'error' && (
           <Card>

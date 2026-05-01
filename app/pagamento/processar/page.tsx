@@ -123,7 +123,8 @@ function ProcessPaymentContent() {
         window.location.assign(paymentUrl)
       } catch (error) {
         console.error('Erro no processamento do pagamento:', error)
-        router.push('/pagamento/status?status=error')
+        const message = error instanceof Error ? error.message : 'Erro no processamento do pagamento.'
+        router.push(`/pagamento/status?status=error&message=${encodeURIComponent(message)}`)
       }
     }
 
