@@ -44,8 +44,8 @@ export const HeroWrapper = styled.section`
     position: absolute;
     inset: 0;
     background: 
-      radial-gradient(circle at 20% 30%, rgba(215, 255, 50, 0.14) 0%, transparent 40%),
-      radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.08) 0%, transparent 40%);
+      linear-gradient(180deg, rgba(8, 22, 56, 0.72) 0%, rgba(8, 22, 56, 0.32) 42%, rgba(8, 22, 56, 0.82) 100%),
+      radial-gradient(circle at 50% 44%, rgba(0, 0, 0, 0.48) 0%, rgba(0, 0, 0, 0.22) 34%, transparent 62%);
     pointer-events: none;
     z-index: 1;
   }
@@ -58,12 +58,13 @@ export const Content = styled.div`
   text-align: center;
   padding: 2rem;
   max-width: 900px;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55);
 `
 
 export const Badge = styled.span`
   display: inline-block;
-  background: rgba(215, 255, 50, 0.16);
-  color: #d7ff32;
+  background: rgba(8, 22, 56, 0.78);
+  color: #efff73;
   padding: 0.5rem 1.5rem;
   border-radius: 50px;
   font-size: 0.85rem;
@@ -71,7 +72,9 @@ export const Badge = styled.span`
   text-transform: uppercase;
   letter-spacing: 2px;
   margin-bottom: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(215, 255, 50, 0.72);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(10px);
 `
 
 export const Title = styled.h1`
@@ -96,9 +99,9 @@ export const TitleImage = styled.img`
 
 export const Subtitle = styled.p`
   font-size: clamp(1rem, 3vw, 1.5rem);
-  color: rgba(255, 255, 255, 0.85);
+  color: #fff;
   margin-bottom: 2rem;
-  font-weight: 300;
+  font-weight: 600;
   letter-spacing: 3px;
   text-transform: uppercase;
 `
@@ -106,7 +109,7 @@ export const Subtitle = styled.p`
 export const InfoGrid = styled.div`
   display: flex;
   justify-content: center;
-  gap: 3rem;
+  gap: 0.85rem;
   margin-bottom: 2.5rem;
   flex-wrap: wrap;
 `
@@ -115,36 +118,62 @@ export const InfoItem = styled.div`
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  color: rgba(255, 255, 255, 0.8);
+  min-height: 46px;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  color: #fff;
+  background: rgba(8, 22, 56, 0.76);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(10px);
   
   svg {
-    color: #d7ff32;
+    color: #efff73;
+    flex: 0 0 auto;
   }
   
   span {
     font-size: 1rem;
+    font-weight: 600;
+  }
+
+  @media (max-width: 520px) {
+    width: 100%;
+    justify-content: center;
   }
 `
 
 export const CTAButton = styled.a`
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
-  background: linear-gradient(135deg, rgba(215, 255, 50, 0.24) 0%, rgba(255, 255, 255, 0.15) 100%);
-  color: #d7ff32;
+  min-width: 280px;
+  background: #d7ff32;
+  color: #081638;
   padding: 1rem 3rem;
   border-radius: 50px;
-  font-weight: 700;
+  font-weight: 900;
   font-size: 1.1rem;
   text-decoration: none;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   transition: all 0.3s ease;
+  border: 2px solid rgba(255, 255, 255, 0.72);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.34), 0 0 0 6px rgba(8, 22, 56, 0.2);
+  text-shadow: none;
   
   &:hover {
-    background: linear-gradient(135deg, rgba(215, 255, 50, 0.35) 0%, rgba(255, 255, 255, 0.22) 100%);
+    background: #efff73;
     transform: translateY(-3px);
-    box-shadow: 0 10px 30px rgba(215, 255, 50, 0.24);
+    box-shadow: 0 18px 38px rgba(0, 0, 0, 0.38), 0 0 0 6px rgba(8, 22, 56, 0.26);
+  }
+
+  @media (max-width: 520px) {
+    width: 100%;
+    min-width: 0;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
   }
 `
 
