@@ -22,6 +22,7 @@ type ApiOrder = {
   code?: string
   valorTotal?: number | string
   total?: number | string
+  emailContato?: string | null
   dataCompra?: string
   prazoReembolsoDias?: number
   dataLimiteReembolso?: string
@@ -29,6 +30,23 @@ type ApiOrder = {
   createdAt?: string
   permiteSolicitarReembolso?: boolean
   motivoIndisponibilidadeReembolso?: string | null
+}
+
+type RefundDraft = {
+  emailContato: string
+  observacao: string
+  confirming: boolean
+  loading: boolean
+  message: string | null
+  messageTone: 'error' | 'success' | 'info'
+}
+
+type RefundRequestResponse = {
+  ok?: boolean
+  mensagem?: string
+  message?: string
+  erro?: string
+  error?: string
 }
 
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api-1kmzinho.onrender.com').replace(/\/$/, '')
@@ -252,6 +270,55 @@ const RefundInfo = styled.div`
   }
 `
 
+const RefundForm = styled.div`
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 1rem;
+`
+
+const TextArea = styled.textarea`
+  min-height: 84px;
+  resize: vertical;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  font-size: 0.95rem;
+
+  &:focus {
+    outline: none;
+    border-color: #00A4F5;
+    box-shadow: 0 0 0 1px rgba(0, 164, 245, 0.4);
+  }
+`
+
+const ConfirmationBox = styled.div`
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(57, 255, 20, 0.18);
+  background: rgba(57, 255, 20, 0.06);
+`
+
+const ConfirmationTitle = styled.h3`
+  margin: 0;
+  color: rgba(255, 255, 255, 0.94);
+  font-size: 1rem;
+  font-weight: 800;
+`
+
+const ActionRow = styled.div`
+  display: grid;
+  gap: 0.6rem;
+
+  @media (min-width: 520px) {
+    grid-template-columns: 1fr 1fr;
+  }
+`
+
 const RefundButton = styled.button`
   margin-top: 1rem;
   width: 100%;
@@ -275,6 +342,29 @@ const RefundButton = styled.button`
     color: rgba(255, 255, 255, 0.42);
     background: rgba(255, 255, 255, 0.04);
     border-color: rgba(255, 255, 255, 0.1);
+  }
+`
+
+const SecondaryButton = styled.button`
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.9rem;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.78);
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.22);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
   }
 `
 
@@ -325,9 +415,18 @@ function formatDate(value?: string) {
   }).format(date)
 }
 
+function getOrderKey(order: ApiOrder, index: number) {
+  return String(order.idPedido ?? order.id ?? order.codigoPedido ?? order.codigo ?? order.code ?? index)
+}
+
+function isValidEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
+}
+
 export default function MinhasComprasPage() {
   const [cpf, setCpf] = useState('')
   const [orders, setOrders] = useState<ApiOrder[]>([])
+  const [refundDrafts, setRefundDrafts] = useState<Record<string, RefundDraft>>({})
   const [loading, setLoading] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
@@ -337,6 +436,7 @@ export default function MinhasComprasPage() {
     e.preventDefault()
     setMessage(null)
     setOrders([])
+    setRefundDrafts({})
     setHasSearched(false)
 
     const normalizedCpf = normalizeCPF(cpf)
@@ -364,7 +464,23 @@ export default function MinhasComprasPage() {
       }
 
       const data = await res.json()
-      setOrders(readOrders(data))
+      const foundOrders = readOrders(data)
+
+      setOrders(foundOrders)
+      setRefundDrafts(
+        foundOrders.reduce<Record<string, RefundDraft>>((drafts, order, index) => {
+          drafts[getOrderKey(order, index)] = {
+            emailContato: order.emailContato ?? '',
+            observacao: '',
+            confirming: false,
+            loading: false,
+            message: null,
+            messageTone: 'info',
+          }
+
+          return drafts
+        }, {})
+      )
       setHasSearched(true)
     } catch (err) {
       console.error(err)
@@ -375,13 +491,96 @@ export default function MinhasComprasPage() {
     }
   }
 
-  function handleRefundRequest(order: ApiOrder) {
-    const normalizedCpf = normalizeCPF(cpf)
-    const code = order.codigoPedido ?? order.codigo ?? order.code ?? 'não informado'
-    const eventName = order.nomeEvento ?? order.evento ?? order.eventName ?? 'não informado'
+  function updateRefundDraft(orderKey: string, patch: Partial<RefundDraft>) {
+    setRefundDrafts(prev => {
+      const current = prev[orderKey] ?? {
+        emailContato: '',
+        observacao: '',
+        confirming: false,
+        loading: false,
+        message: null,
+        messageTone: 'info',
+      }
 
-    setMessageTone('info')
-    setMessage(`Entre em contato com a organização e envie: "Olá, quero solicitar reembolso do pedido ${code}, evento ${eventName}, CPF ${normalizedCpf}."`)
+      return {
+        ...prev,
+        [orderKey]: {
+          ...current,
+          ...patch,
+        },
+      }
+    })
+  }
+
+  function handleRefundRequest(orderKey: string) {
+    updateRefundDraft(orderKey, {
+      confirming: true,
+      message: null,
+      messageTone: 'info',
+    })
+  }
+
+  async function confirmRefundRequest(order: ApiOrder, orderKey: string) {
+    const normalizedCpf = normalizeCPF(cpf)
+    const idPedido = order.idPedido ?? order.id
+    const draft = refundDrafts[orderKey]
+    const emailContato = draft?.emailContato.trim() ?? ''
+
+    if (!idPedido) {
+      updateRefundDraft(orderKey, {
+        message: 'Não foi possível identificar o pedido para solicitar reembolso.',
+        messageTone: 'error',
+      })
+      return
+    }
+
+    if (!isValidEmail(emailContato)) {
+      updateRefundDraft(orderKey, {
+        message: 'Informe um e-mail válido para contato.',
+        messageTone: 'error',
+      })
+      return
+    }
+
+    try {
+      updateRefundDraft(orderKey, { loading: true, message: null })
+
+      const res = await fetch(`${API_BASE_URL}/pedidos/${encodeURIComponent(String(idPedido))}/solicitar-reembolso`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cpf: normalizedCpf,
+          emailContato,
+          observacao: draft?.observacao.trim() || undefined,
+        }),
+      })
+
+      const data = (await res.json().catch(() => ({}))) as RefundRequestResponse
+      const responseMessage = data.mensagem ?? data.message ?? data.erro ?? data.error
+
+      if (!res.ok || data.ok === false) {
+        updateRefundDraft(orderKey, {
+          loading: false,
+          message: responseMessage ?? 'Não foi possível solicitar o reembolso agora. Tente novamente.',
+          messageTone: 'error',
+        })
+        return
+      }
+
+      updateRefundDraft(orderKey, {
+        confirming: false,
+        loading: false,
+        message: responseMessage ?? 'Solicitação de reembolso enviada com sucesso.',
+        messageTone: 'success',
+      })
+    } catch (err) {
+      console.error(err)
+      updateRefundDraft(orderKey, {
+        loading: false,
+        message: 'Erro ao solicitar reembolso. Verifique sua conexão e tente novamente.',
+        messageTone: 'error',
+      })
+    }
   }
 
   return (
@@ -438,11 +637,20 @@ export default function MinhasComprasPage() {
               const eventName = order.nomeEvento ?? order.evento ?? order.eventName ?? 'Não informado'
               const lotName = order.nomeLote ?? order.lote ?? order.lotName ?? 'Não informado'
               const orderCode = order.codigoPedido ?? order.codigo ?? order.code ?? 'Não informado'
-              const orderId = order.idPedido ?? order.id ?? orderCode ?? index
+              const orderId = getOrderKey(order, index)
               const refundDeadlineText = formatDate(order.dataLimiteReembolso)
               const refundPolicyText = order.eventoComDataAlterada
                 ? 'Prazo estendido para 30 dias por alteração na data do evento.'
                 : 'Prazo padrão de 7 dias a partir da compra.'
+              const draft = refundDrafts[orderId] ?? {
+                emailContato: order.emailContato ?? '',
+                observacao: '',
+                confirming: false,
+                loading: false,
+                message: null,
+                messageTone: 'info',
+              }
+              const canRequestRefund = Boolean(order.permiteSolicitarReembolso && isValidEmail(draft.emailContato))
 
               return (
                 <OrderCard key={`${orderId}-${index}`}>
@@ -483,25 +691,114 @@ export default function MinhasComprasPage() {
                       <span>Data limite do reembolso</span>
                       <strong>{refundDeadlineText}</strong>
                     </OrderItem>
+                    {order.emailContato && (
+                      <OrderItem>
+                        <span>E-mail de contato</span>
+                        <strong>{order.emailContato}</strong>
+                      </OrderItem>
+                    )}
                   </OrderGrid>
 
                   <RefundInfo>
                     <strong>Reembolso:</strong> {refundPolicyText}
-                    {!order.permiteSolicitarReembolso && order.motivoIndisponibilidadeReembolso && (
-                      <>
-                        <br />
-                        {order.motivoIndisponibilidadeReembolso}
-                      </>
-                    )}
                   </RefundInfo>
+
+                  <RefundForm>
+                    <Label>
+                      {order.emailContato ? 'E-mail para contato' : 'E-mail para contato obrigatório'}
+                      <Input
+                        type="email"
+                        placeholder="voce@email.com"
+                        value={draft.emailContato}
+                        onChange={(e) => updateRefundDraft(orderId, {
+                          emailContato: e.target.value,
+                          message: null,
+                        })}
+                      />
+                    </Label>
+
+                    <Label>
+                      Observação opcional
+                      <TextArea
+                        placeholder="Se quiser, deixe uma observação para a organização."
+                        value={draft.observacao}
+                        onChange={(e) => updateRefundDraft(orderId, { observacao: e.target.value })}
+                      />
+                    </Label>
+                  </RefundForm>
 
                   <RefundButton
                     type="button"
-                    disabled={!order.permiteSolicitarReembolso}
-                    onClick={() => handleRefundRequest(order)}
+                    disabled={!canRequestRefund || draft.loading}
+                    onClick={() => handleRefundRequest(orderId)}
                   >
                     Solicitar reembolso
                   </RefundButton>
+
+                  {!order.permiteSolicitarReembolso && order.motivoIndisponibilidadeReembolso && (
+                    <Helper $tone="error">
+                      {order.motivoIndisponibilidadeReembolso}
+                    </Helper>
+                  )}
+
+                  {order.permiteSolicitarReembolso && draft.emailContato && !isValidEmail(draft.emailContato) && (
+                    <Helper $tone="error">
+                      Informe um e-mail válido para habilitar a solicitação de reembolso.
+                    </Helper>
+                  )}
+
+                  {order.permiteSolicitarReembolso && !draft.emailContato.trim() && (
+                    <Helper $tone="error">
+                      Informe um e-mail de contato para solicitar o reembolso.
+                    </Helper>
+                  )}
+
+                  {draft.message && (
+                    <Helper $tone={draft.messageTone}>
+                      {draft.message}
+                    </Helper>
+                  )}
+
+                  {draft.confirming && (
+                    <ConfirmationBox>
+                      <ConfirmationTitle>Confirmar solicitação de reembolso</ConfirmationTitle>
+                      <OrderGrid>
+                        <OrderItem>
+                          <span>Evento</span>
+                          <strong>{eventName}</strong>
+                        </OrderItem>
+                        <OrderItem>
+                          <span>Data da compra</span>
+                          <strong>{formatDate(order.dataCompra)}</strong>
+                        </OrderItem>
+                        <OrderItem>
+                          <span>Prazo limite</span>
+                          <strong>{refundDeadlineText}</strong>
+                        </OrderItem>
+                        <OrderItem>
+                          <span>E-mail de contato</span>
+                          <strong>{draft.emailContato}</strong>
+                        </OrderItem>
+                      </OrderGrid>
+
+                      <ActionRow>
+                        <SecondaryButton
+                          type="button"
+                          disabled={draft.loading}
+                          onClick={() => updateRefundDraft(orderId, { confirming: false })}
+                        >
+                          Cancelar
+                        </SecondaryButton>
+                        <RefundButton
+                          type="button"
+                          disabled={draft.loading}
+                          onClick={() => confirmRefundRequest(order, orderId)}
+                        >
+                          {draft.loading ? 'Enviando...' : 'Confirmar solicitação'}
+                        </RefundButton>
+                      </ActionRow>
+                    </ConfirmationBox>
+                  )}
                 </OrderCard>
               )
             })}
