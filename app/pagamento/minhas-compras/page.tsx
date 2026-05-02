@@ -39,6 +39,8 @@ type RefundDraft = {
   loading: boolean
   message: string | null
   messageTone: 'error' | 'success' | 'info'
+  idSolicitacao?: string | number
+  statusSolicitacao?: string
 }
 
 type RefundRequestResponse = {
@@ -47,6 +49,12 @@ type RefundRequestResponse = {
   message?: string
   erro?: string
   error?: string
+  idSolicitacao?: string | number
+  statusSolicitacao?: string
+  data?: {
+    idSolicitacao?: string | number
+    statusSolicitacao?: string
+  }
 }
 
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api-1kmzinho.onrender.com').replace(/\/$/, '')
@@ -293,14 +301,37 @@ const TextArea = styled.textarea`
   }
 `
 
+const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(5px);
+`
+
+const ModalContent = styled.div`
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.25rem;
+  border-radius: 16px;
+  border: 1px solid rgba(57, 255, 20, 0.18);
+  background: linear-gradient(145deg, #141414 0%, #1a1a1a 100%);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+
+  @media (max-width: ${breakpoints.tablet}) {
+    padding: 1rem;
+  }
+`
+
 const ConfirmationBox = styled.div`
   display: grid;
   gap: 0.8rem;
-  margin-top: 1rem;
-  padding: 1rem;
-  border-radius: 12px;
-  border: 1px solid rgba(57, 255, 20, 0.18);
-  background: rgba(57, 255, 20, 0.06);
 `
 
 const ConfirmationTitle = styled.h3`
@@ -368,6 +399,21 @@ const SecondaryButton = styled.button`
   }
 `
 
+const RequestStatus = styled.div`
+  margin-top: 1rem;
+  padding: 0.85rem;
+  border-radius: 10px;
+  background: rgba(57, 255, 20, 0.08);
+  border: 1px solid rgba(57, 255, 20, 0.2);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.84rem;
+  line-height: 1.5;
+
+  strong {
+    color: #39FF14;
+  }
+`
+
 function normalizeCPF(value: string) {
   return value.replace(/\D/g, '')
 }
@@ -421,6 +467,14 @@ function getOrderKey(order: ApiOrder, index: number) {
 
 function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
+}
+
+function getRefundRequestId(data: RefundRequestResponse) {
+  return data.idSolicitacao ?? data.data?.idSolicitacao
+}
+
+function getRefundRequestStatus(data: RefundRequestResponse) {
+  return data.statusSolicitacao ?? data.data?.statusSolicitacao
 }
 
 export default function MinhasComprasPage() {
@@ -572,16 +626,25 @@ export default function MinhasComprasPage() {
         loading: false,
         message: responseMessage ?? 'Solicitação de reembolso enviada com sucesso.',
         messageTone: 'success',
+        idSolicitacao: getRefundRequestId(data),
+        statusSolicitacao: getRefundRequestStatus(data),
       })
     } catch (err) {
       console.error(err)
       updateRefundDraft(orderKey, {
         loading: false,
-        message: 'Erro ao solicitar reembolso. Verifique sua conexão e tente novamente.',
+        message: 'Não foi possível enviar a solicitação. Tente novamente.',
         messageTone: 'error',
       })
     }
   }
+
+  const confirmationEntry = orders
+    .map((order, index) => ({
+      order,
+      orderKey: getOrderKey(order, index),
+    }))
+    .find(({ orderKey }) => refundDrafts[orderKey]?.confirming)
 
   return (
     <PageWrapper>
@@ -732,7 +795,7 @@ export default function MinhasComprasPage() {
                     disabled={!canRequestRefund || draft.loading}
                     onClick={() => handleRefundRequest(orderId)}
                   >
-                    Solicitar reembolso
+                    {draft.loading ? 'Enviando...' : 'Solicitar reembolso'}
                   </RefundButton>
 
                   {!order.permiteSolicitarReembolso && order.motivoIndisponibilidadeReembolso && (
@@ -759,45 +822,22 @@ export default function MinhasComprasPage() {
                     </Helper>
                   )}
 
-                  {draft.confirming && (
-                    <ConfirmationBox>
-                      <ConfirmationTitle>Confirmar solicitação de reembolso</ConfirmationTitle>
-                      <OrderGrid>
-                        <OrderItem>
-                          <span>Evento</span>
-                          <strong>{eventName}</strong>
-                        </OrderItem>
-                        <OrderItem>
-                          <span>Data da compra</span>
-                          <strong>{formatDate(order.dataCompra)}</strong>
-                        </OrderItem>
-                        <OrderItem>
-                          <span>Prazo limite</span>
-                          <strong>{refundDeadlineText}</strong>
-                        </OrderItem>
-                        <OrderItem>
-                          <span>E-mail de contato</span>
-                          <strong>{draft.emailContato}</strong>
-                        </OrderItem>
-                      </OrderGrid>
-
-                      <ActionRow>
-                        <SecondaryButton
-                          type="button"
-                          disabled={draft.loading}
-                          onClick={() => updateRefundDraft(orderId, { confirming: false })}
-                        >
-                          Cancelar
-                        </SecondaryButton>
-                        <RefundButton
-                          type="button"
-                          disabled={draft.loading}
-                          onClick={() => confirmRefundRequest(order, orderId)}
-                        >
-                          {draft.loading ? 'Enviando...' : 'Confirmar solicitação'}
-                        </RefundButton>
-                      </ActionRow>
-                    </ConfirmationBox>
+                  {(draft.idSolicitacao || draft.statusSolicitacao) && (
+                    <RequestStatus>
+                      <strong>Solicitação registrada.</strong>
+                      {draft.idSolicitacao && (
+                        <>
+                          <br />
+                          Código da solicitação: {draft.idSolicitacao}
+                        </>
+                      )}
+                      {draft.statusSolicitacao && (
+                        <>
+                          <br />
+                          Status: {draft.statusSolicitacao}
+                        </>
+                      )}
+                    </RequestStatus>
                   )}
                 </OrderCard>
               )
@@ -805,6 +845,85 @@ export default function MinhasComprasPage() {
           </OrdersList>
         )}
       </Container>
+
+      {confirmationEntry && (() => {
+        const { order, orderKey } = confirmationEntry
+        const draft = refundDrafts[orderKey]
+        const eventName = order.nomeEvento ?? order.evento ?? order.eventName ?? 'Não informado'
+        const refundDeadlineText = formatDate(order.dataLimiteReembolso)
+        const purchaseDateText = formatDate(order.dataCompra)
+
+        return (
+          <ModalOverlay
+            role="presentation"
+            onClick={() => {
+              if (!draft?.loading) updateRefundDraft(orderKey, { confirming: false })
+            }}
+          >
+            <ModalContent
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="refund-confirmation-title"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <ConfirmationBox>
+                <ConfirmationTitle id="refund-confirmation-title">
+                  Confirmar solicitação de reembolso
+                </ConfirmationTitle>
+
+                <OrderGrid>
+                  <OrderItem>
+                    <span>Evento</span>
+                    <strong>{eventName}</strong>
+                  </OrderItem>
+                  <OrderItem>
+                    <span>Data da compra</span>
+                    <strong>{purchaseDateText}</strong>
+                  </OrderItem>
+                  <OrderItem>
+                    <span>Prazo limite</span>
+                    <strong>{refundDeadlineText}</strong>
+                  </OrderItem>
+                  <OrderItem>
+                    <span>E-mail de contato</span>
+                    <strong>{draft?.emailContato ?? 'Não informado'}</strong>
+                  </OrderItem>
+                </OrderGrid>
+
+                {draft?.observacao.trim() && (
+                  <OrderItem>
+                    <span>Observação</span>
+                    <strong>{draft.observacao.trim()}</strong>
+                  </OrderItem>
+                )}
+
+                {draft?.message && draft.messageTone === 'error' && (
+                  <Helper $tone="error">
+                    {draft.message}
+                  </Helper>
+                )}
+
+                <ActionRow>
+                  <SecondaryButton
+                    type="button"
+                    disabled={draft?.loading}
+                    onClick={() => updateRefundDraft(orderKey, { confirming: false })}
+                  >
+                    Cancelar
+                  </SecondaryButton>
+                  <RefundButton
+                    type="button"
+                    disabled={draft?.loading}
+                    onClick={() => confirmRefundRequest(order, orderKey)}
+                  >
+                    {draft?.loading ? 'Enviando...' : 'Confirmar solicitação'}
+                  </RefundButton>
+                </ActionRow>
+              </ConfirmationBox>
+            </ModalContent>
+          </ModalOverlay>
+        )
+      })()}
     </PageWrapper>
   )
 }
