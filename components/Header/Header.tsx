@@ -39,6 +39,9 @@ export default function Header() {
           <NavLink href="#local" onClick={() => setIsMenuOpen(false)}>Local</NavLink>
           <NavLink href="#contato" onClick={() => setIsMenuOpen(false)}>Contato</NavLink>
           <MobileNavActions>
+            <CTAButton href="/pagamento/minhas-compras" $variant="ghost" onClick={() => setIsMenuOpen(false)}>
+              Minha compra
+            </CTAButton>
             <CTAButton href="/pagamento/alterar-dados" $variant="ghost" onClick={() => setIsMenuOpen(false)}>
               Alterar dados
             </CTAButton>
@@ -50,6 +53,9 @@ export default function Header() {
         
         <RightSection>
           <DesktopNavActions>
+            <CTAButton href="/pagamento/minhas-compras" $variant="ghost">
+              Minha compra
+            </CTAButton>
             <CTAButton href="/pagamento/alterar-dados" $variant="ghost">
               Alterar dados
             </CTAButton>
