@@ -23,8 +23,12 @@ type ApiOrder = {
   valorTotal?: number | string
   total?: number | string
   dataCompra?: string
+  prazoReembolsoDias?: number
+  dataLimiteReembolso?: string
+  eventoComDataAlterada?: boolean
   createdAt?: string
   permiteSolicitarReembolso?: boolean
+  motivoIndisponibilidadeReembolso?: string | null
 }
 
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api-1kmzinho.onrender.com').replace(/\/$/, '')
@@ -233,6 +237,21 @@ const OrderItem = styled.div`
   }
 `
 
+const RefundInfo = styled.div`
+  margin-top: 1rem;
+  padding: 0.85rem;
+  border-radius: 10px;
+  background: rgba(0, 164, 245, 0.07);
+  border: 1px solid rgba(0, 164, 245, 0.16);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.84rem;
+  line-height: 1.5;
+
+  strong {
+    color: rgba(255, 255, 255, 0.92);
+  }
+`
+
 const RefundButton = styled.button`
   margin-top: 1rem;
   width: 100%;
@@ -249,6 +268,13 @@ const RefundButton = styled.button`
   &:hover {
     background: rgba(57, 255, 20, 0.14);
     border-color: rgba(57, 255, 20, 0.55);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    color: rgba(255, 255, 255, 0.42);
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
   }
 `
 
@@ -413,6 +439,10 @@ export default function MinhasComprasPage() {
               const lotName = order.nomeLote ?? order.lote ?? order.lotName ?? 'Não informado'
               const orderCode = order.codigoPedido ?? order.codigo ?? order.code ?? 'Não informado'
               const orderId = order.idPedido ?? order.id ?? orderCode ?? index
+              const refundDeadlineText = formatDate(order.dataLimiteReembolso)
+              const refundPolicyText = order.eventoComDataAlterada
+                ? 'Prazo estendido para 30 dias por alteração na data do evento.'
+                : 'Prazo padrão de 7 dias a partir da compra.'
 
               return (
                 <OrderCard key={`${orderId}-${index}`}>
@@ -439,15 +469,39 @@ export default function MinhasComprasPage() {
                     </OrderItem>
                     <OrderItem>
                       <span>Data da compra</span>
-                      <strong>{formatDate(order.dataCompra ?? order.createdAt)}</strong>
+                      <strong>{formatDate(order.dataCompra)}</strong>
+                    </OrderItem>
+                    <OrderItem>
+                      <span>Prazo para reembolso</span>
+                      <strong>
+                        {order.prazoReembolsoDias !== undefined
+                          ? `${order.prazoReembolsoDias} dias`
+                          : 'Não informado'}
+                      </strong>
+                    </OrderItem>
+                    <OrderItem>
+                      <span>Data limite do reembolso</span>
+                      <strong>{refundDeadlineText}</strong>
                     </OrderItem>
                   </OrderGrid>
 
-                  {order.permiteSolicitarReembolso && (
-                    <RefundButton type="button" onClick={() => handleRefundRequest(order)}>
-                      Solicitar reembolso
-                    </RefundButton>
-                  )}
+                  <RefundInfo>
+                    <strong>Reembolso:</strong> {refundPolicyText}
+                    {!order.permiteSolicitarReembolso && order.motivoIndisponibilidadeReembolso && (
+                      <>
+                        <br />
+                        {order.motivoIndisponibilidadeReembolso}
+                      </>
+                    )}
+                  </RefundInfo>
+
+                  <RefundButton
+                    type="button"
+                    disabled={!order.permiteSolicitarReembolso}
+                    onClick={() => handleRefundRequest(order)}
+                  >
+                    Solicitar reembolso
+                  </RefundButton>
                 </OrderCard>
               )
             })}
