@@ -103,9 +103,16 @@ function ProcessPaymentContent() {
           erro?: string
           message?: string
           detail?: string
+          backendStatus?: number
+          backendResponse?: unknown
         }
 
         if (!response.ok) {
+          console.error('Resposta de erro de /api/checkout:', {
+            status: response.status,
+            checkout,
+          })
+
           const message = checkout.detail
             ? `${checkout.erro ?? checkout.message ?? 'Erro ao criar checkout'}: ${checkout.detail}`
             : checkout.erro ?? checkout.message ?? 'Erro ao criar checkout'

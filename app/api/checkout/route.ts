@@ -39,6 +39,13 @@ type ApiCheckoutPayload = {
   numeroCamisa: string
 }
 
+type CheckoutApiResult = {
+  erro?: string
+  message?: string
+  detail?: string
+  linkPagamento?: string
+}
+
 const REQUIRED_FIELDS: Array<keyof Pick<
   ApiCheckoutPayload,
   'kitId' | 'cpf' | 'contato' | 'nomeNaCamisa' | 'dataNascimento' | 'nomePessoa' | 'corCamisa'
@@ -151,7 +158,7 @@ export async function POST(request: Request) {
     })
 
     const text = await response.text()
-    let result: { erro?: string; message?: string; linkPagamento?: string } | null = null
+    let result: CheckoutApiResult | null = null
 
     try {
       result = text ? JSON.parse(text) : null
@@ -160,8 +167,22 @@ export async function POST(request: Request) {
     }
 
     if (!response.ok) {
+      console.error('Erro retornado pela API /checkout:', {
+        url: `${API_BASE_URL}/checkout`,
+        status: response.status,
+        payload,
+        response: result ?? text,
+      })
+
+      const apiMessage = result?.erro ?? result?.message ?? (text || 'Erro ao criar checkout.')
+
       return NextResponse.json(
-        result ?? { erro: 'Erro ao criar checkout.' },
+        {
+          erro: apiMessage,
+          detail: `API /checkout retornou status ${response.status}.`,
+          backendStatus: response.status,
+          backendResponse: result ?? text,
+        },
         { status: response.status },
       )
     }

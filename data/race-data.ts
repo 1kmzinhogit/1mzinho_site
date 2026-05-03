@@ -57,7 +57,7 @@ export const raceKits: RaceKit[] = [
     img: "/banner.png",
     kitColors: [
       { color: '#d7ff32', name: 'Amarelo neon' },
-      { color: '#ffffff', name: 'Branco' },
+      { color: '#ffffff', name: 'Branca' },
       { color: '#081638', name: 'Azul marinho' },
     ],
     documents: [
