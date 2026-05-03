@@ -18,11 +18,45 @@ type FrontendCheckoutPayload = {
   isElderly?: boolean
   team?: string
   teamName?: string
+  kitColor?: string
+  kitColorName?: string
   shirtNumber?: string
   shoeNumber?: string
 }
 
-function normalizarCategoria(gender?: string, isElderly?: boolean) {
+type ApiCategoria = 'MASCULINO' | 'FEMININO' | 'MAIOR_60' | 'LGBTQIA'
+
+type ApiCheckoutPayload = {
+  kitId: string
+  cpf: string
+  contato: string
+  nomeNaCamisa: string
+  dataNascimento: string
+  nomePessoa: string
+  corCamisa: string
+  categoria: ApiCategoria
+  equipe: string
+  numeroCamisa: string
+}
+
+const REQUIRED_FIELDS: Array<keyof Pick<
+  ApiCheckoutPayload,
+  'kitId' | 'cpf' | 'contato' | 'nomeNaCamisa' | 'dataNascimento' | 'nomePessoa' | 'corCamisa'
+>> = [
+  'kitId',
+  'cpf',
+  'contato',
+  'nomeNaCamisa',
+  'dataNascimento',
+  'nomePessoa',
+  'corCamisa',
+]
+
+function onlyDigits(value?: string) {
+  return String(value ?? '').replace(/\D/g, '')
+}
+
+function normalizarCategoria(gender?: string, isElderly?: boolean): ApiCategoria {
   const value = String(gender || '').toLowerCase()
 
   if (isElderly || value.includes('60')) return 'MAIOR_60'
@@ -42,34 +76,53 @@ function buscarKitConfiavel(kitId?: string): RaceKit {
   return kit
 }
 
-function criarPayloadApi(dados: FrontendCheckoutPayload) {
-  const kit = buscarKitConfiavel(dados.kitId)
-  const valor = kit.price
-  const nomeEvento = kit.raceName
-  const distancia = kit.distance
+function buscarNomeCorCamisa(kit: RaceKit, dados: FrontendCheckoutPayload) {
+  const colorName = dados.kitColorName?.trim()
 
-  return {
-    cpf: dados.user?.cpf,
-    nomeEvento,
-    contato: dados.user?.phone,
-    lote: `Lote ${kit.lot}`,
-    valorIngresso: valor,
-    nomeNaCamisa: dados.user?.name,
-    dataNascimento: dados.user?.dataNascimento,
-    nomePessoa: dados.user?.name,
-    corCamisa: dados.shirtSize,
-    equipe: dados.team ?? dados.teamName ?? '',
-    categoria: normalizarCategoria(dados.gender, dados.isElderly),
-    numeroCamisa: dados.shirtNumber ?? dados.shoeNumber ?? '',
-    itens: [
-      {
-        id: kit.id,
-        titulo: `${nomeEvento} - ${distancia}`,
-        quantidade: 1,
-        valor_unitario: valor,
-      },
-    ],
+  if (colorName) return colorName
+
+  const color = dados.kitColor?.trim()
+  const selectedColor = kit.kitColors?.find(item => item.color === color)
+
+  return selectedColor?.name ?? color ?? ''
+}
+
+function criarNomeNaCamisa(nomePessoa: string) {
+  return nomePessoa.trim().split(/\s+/)[0]?.toUpperCase() ?? ''
+}
+
+function validarPayloadApi(payload: ApiCheckoutPayload) {
+  const emptyField = REQUIRED_FIELDS.find(field => !payload[field]?.trim())
+
+  if (emptyField) {
+    throw new Error(`Campo obrigatorio ausente no checkout: ${emptyField}.`)
   }
+
+  if (!['MASCULINO', 'FEMININO', 'MAIOR_60', 'LGBTQIA'].includes(payload.categoria)) {
+    throw new Error('Categoria invalida no checkout.')
+  }
+}
+
+function criarPayloadApi(dados: FrontendCheckoutPayload): ApiCheckoutPayload {
+  const kit = buscarKitConfiavel(dados.kitId)
+  const nomePessoa = dados.user?.name?.trim() ?? ''
+
+  const payload: ApiCheckoutPayload = {
+    kitId: kit.id,
+    cpf: onlyDigits(dados.user?.cpf),
+    contato: onlyDigits(dados.user?.phone),
+    nomeNaCamisa: criarNomeNaCamisa(nomePessoa),
+    dataNascimento: dados.user?.dataNascimento ?? '',
+    nomePessoa,
+    corCamisa: buscarNomeCorCamisa(kit, dados),
+    categoria: normalizarCategoria(dados.gender, dados.isElderly),
+    equipe: dados.team ?? dados.teamName ?? '',
+    numeroCamisa: dados.shirtNumber ?? dados.shoeNumber ?? '',
+  }
+
+  validarPayloadApi(payload)
+
+  return payload
 }
 
 export async function POST(request: Request) {
@@ -87,6 +140,8 @@ export async function POST(request: Request) {
         { status: 400 },
       )
     }
+
+    console.log('Payload final enviado para /checkout:', payload)
 
     const response = await fetch(`${API_BASE_URL}/checkout`, {
       method: 'POST',

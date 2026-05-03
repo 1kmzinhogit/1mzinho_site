@@ -209,6 +209,7 @@ function RaceCard({
   const closeModal = () => setModal(prev => ({ ...prev, isOpen: false }))
 
   const handleConfirmPurchase = () => {
+    const selectedKitColor = kitColors.find(({ color }) => color === modal.kitColor)
     const paymentData = {
       kitId: modal.kit?.id,
       user: modal.userData,
@@ -218,6 +219,7 @@ function RaceCard({
       shoeNumber: modal.shoeNumber,
       teamName: modal.teamName,
       kitColor: modal.kitColor,
+      kitColorName: selectedKitColor?.name ?? '',
     }
     sessionStorage.setItem('pendingPayment', JSON.stringify(paymentData))
     router.push('/pagamento/processar')
@@ -415,7 +417,7 @@ function RaceCard({
           <FormGroup>
             <Label>Categoria</Label>
             <GenderSelector>
-              {(['Masculino', 'Feminino', 'LGBTQIA+', '60+', 'PCD'] as GenderCategory[]).map(gender => (
+              {(['Masculino', 'Feminino', 'LGBTQIA+', '60+'] as GenderCategory[]).map(gender => (
                 <GenderButton
                   key={gender}
                   type="button"
