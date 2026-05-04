@@ -36,6 +36,7 @@ type LoteStatus = {
   capacidade: number
   vagasRestantes: number
   disponivel: boolean
+  possuiPrecoPcdAtivo: boolean
   motivoIndisponibilidade?: string
   raw: Record<string, unknown>
 }
@@ -50,6 +51,7 @@ type RaceKitWithStatus = RaceKit & {
   capacidade: number
   vagasRestantes: number
   disponivel: boolean
+  possuiPrecoPcdAtivo: boolean
   motivoIndisponibilidade?: string
 }
 
@@ -94,6 +96,21 @@ function getBoolean(source: Record<string, unknown>, keys: string[], fallback = 
   return fallback
 }
 
+function hasActiveCategoryPrice(source: Record<string, unknown>, category: string) {
+  const precos = source.precos
+  if (!Array.isArray(precos)) return false
+
+  return precos.some(preco => {
+    const record = asRecord(preco)
+    if (!record) return false
+
+    const precoCategoria = getString(record, ['categoria'])
+    const valor = getNumber(record, ['valor'], Number.NaN)
+
+    return precoCategoria === category && Number.isFinite(valor) && valor > 0
+  })
+}
+
 function extractStatusItems(payload: unknown): Record<string, unknown>[] {
   if (Array.isArray(payload)) return payload.map(asRecord).filter(Boolean) as Record<string, unknown>[]
 
@@ -131,6 +148,7 @@ function normalizeLoteStatus(payload: unknown): LoteStatus[] {
       capacidade,
       vagasRestantes,
       disponivel,
+      possuiPrecoPcdAtivo: hasActiveCategoryPrice(item, 'PCD'),
       motivoIndisponibilidade: getString(item, ['motivoIndisponibilidade', 'motivo', 'statusMensagem']),
       raw: item,
     }
@@ -205,6 +223,13 @@ function RaceCard({
   const documents = kit.documents ?? []
   const isDocumentsOpen = openDocumentsKitId === kit.backendKitId
   const price = formatCurrency(kit.backendPrice)
+  const availableCategories = useMemo<GenderCategory[]>(() => {
+    const categories: GenderCategory[] = ['Masculino', 'Feminino', 'LGBTQIA+', '60+']
+
+    if (kit.possuiPrecoPcdAtivo) categories.push('PCD')
+
+    return categories
+  }, [kit.possuiPrecoPcdAtivo])
 
   useEffect(() => {
     void loadMercadoPago()
@@ -349,6 +374,7 @@ function RaceCard({
       user: modal.userData,
       shirtSize: modal.size,
       gender: modal.gender,
+      categoria: modal.gender,
       isElderly: modal.isElderly,
       shoeNumber: modal.shoeNumber,
       teamName: modal.teamName,
@@ -554,7 +580,7 @@ function RaceCard({
           <FormGroup>
             <Label>Categoria</Label>
             <GenderSelector>
-              {(['Masculino', 'Feminino', 'LGBTQIA+', '60+'] as GenderCategory[]).map(gender => (
+              {availableCategories.map(gender => (
                 <GenderButton
                   key={gender}
                   type="button"
@@ -725,6 +751,7 @@ export default function RaceCards() {
         capacidade: status.capacidade,
         vagasRestantes: status.vagasRestantes,
         disponivel: status.disponivel,
+        possuiPrecoPcdAtivo: status.possuiPrecoPcdAtivo,
         motivoIndisponibilidade: status.motivoIndisponibilidade,
       }))
     })

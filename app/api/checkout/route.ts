@@ -15,6 +15,7 @@ type FrontendCheckoutPayload = {
   }
   shirtSize?: string
   gender?: string
+  categoria?: string
   isElderly?: boolean
   team?: string
   teamName?: string
@@ -24,7 +25,7 @@ type FrontendCheckoutPayload = {
   shoeNumber?: string
 }
 
-type ApiCategoria = 'MASCULINO' | 'FEMININO' | 'MAIOR_60' | 'LGBTQIA'
+type ApiCategoria = 'MASCULINO' | 'FEMININO' | 'MAIOR_60' | 'LGBTQIA' | 'PCD'
 
 type ApiCheckoutPayload = {
   kitId: string
@@ -66,6 +67,7 @@ function onlyDigits(value?: string) {
 function normalizarCategoria(gender?: string, isElderly?: boolean): ApiCategoria {
   const value = String(gender || '').toLowerCase()
 
+  if (value === 'pcd' || value.includes('pcd')) return 'PCD'
   if (isElderly || value.includes('60')) return 'MAIOR_60'
   if (value.includes('fem')) return 'FEMININO'
   if (value.includes('lgbt')) return 'LGBTQIA'
@@ -99,7 +101,7 @@ function validarPayloadApi(payload: ApiCheckoutPayload) {
     throw new Error(`Campo obrigatorio ausente no checkout: ${emptyField}.`)
   }
 
-  if (!['MASCULINO', 'FEMININO', 'MAIOR_60', 'LGBTQIA'].includes(payload.categoria)) {
+  if (!['MASCULINO', 'FEMININO', 'MAIOR_60', 'LGBTQIA', 'PCD'].includes(payload.categoria)) {
     throw new Error('Categoria invalida no checkout.')
   }
 }
@@ -117,9 +119,9 @@ function criarPayloadApi(dados: FrontendCheckoutPayload): ApiCheckoutPayload {
     dataNascimento: dados.user?.dataNascimento ?? '',
     nomePessoa,
     corCamisa: buscarNomeCorCamisa(kit, dados),
-    categoria: normalizarCategoria(dados.gender, dados.isElderly),
+    categoria: normalizarCategoria(dados.categoria ?? dados.gender, dados.isElderly),
     equipe: dados.team ?? dados.teamName ?? '',
-    numeroCamisa: dados.shirtNumber ?? dados.shoeNumber ?? '',
+    numeroCamisa: dados.shirtNumber ?? dados.shirtSize ?? dados.shoeNumber ?? '',
   }
 
   validarPayloadApi(payload)
