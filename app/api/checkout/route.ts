@@ -73,23 +73,17 @@ function normalizarCategoria(gender?: string, isElderly?: boolean): ApiCategoria
   return 'MASCULINO'
 }
 
-function buscarKitConfiavel(kitId?: string): RaceKit {
-  const kit = raceKits.find(item => item.id === kitId)
-
-  if (!kit) {
-    throw new Error('Evento/kit selecionado nao foi encontrado.')
-  }
-
-  return kit
+function buscarKitLocal(kitId?: string): RaceKit | undefined {
+  return raceKits.find(item => item.id === kitId)
 }
 
-function buscarNomeCorCamisa(kit: RaceKit, dados: FrontendCheckoutPayload) {
+function buscarNomeCorCamisa(kit: RaceKit | undefined, dados: FrontendCheckoutPayload) {
   const colorName = dados.kitColorName?.trim()
 
   if (colorName) return colorName
 
   const color = dados.kitColor?.trim()
-  const selectedColor = kit.kitColors?.find(item => item.color === color)
+  const selectedColor = kit?.kitColors?.find(item => item.color === color)
 
   return selectedColor?.name ?? color ?? ''
 }
@@ -111,11 +105,12 @@ function validarPayloadApi(payload: ApiCheckoutPayload) {
 }
 
 function criarPayloadApi(dados: FrontendCheckoutPayload): ApiCheckoutPayload {
-  const kit = buscarKitConfiavel(dados.kitId)
+  const kitId = dados.kitId?.trim() ?? ''
+  const kit = buscarKitLocal(kitId)
   const nomePessoa = dados.user?.name?.trim() ?? ''
 
   const payload: ApiCheckoutPayload = {
-    kitId: kit.id,
+    kitId,
     cpf: onlyDigits(dados.user?.cpf),
     contato: onlyDigits(dados.user?.phone),
     nomeNaCamisa: criarNomeNaCamisa(nomePessoa),

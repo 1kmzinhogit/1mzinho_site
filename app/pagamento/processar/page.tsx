@@ -72,6 +72,14 @@ function ProcessPaymentContent() {
   const [paymentData, setPaymentData] = useState<Record<string, unknown> | null>(null)
 
   useEffect(() => {
+    const notifyLotStatusRefresh = () => {
+      try {
+        localStorage.setItem('lotesStatusRefreshAt', String(Date.now()))
+      } catch {
+        // Sem acesso ao localStorage, o polling dos cards ainda atualiza os lotes.
+      }
+    }
+
     const processPayment = async () => {
       if (hasProcessedPayment.current) return
       hasProcessedPayment.current = true
@@ -88,12 +96,18 @@ function ProcessPaymentContent() {
         const parsed = JSON.parse(raw) as Record<string, unknown>
         setPaymentData(parsed)
 
-        const response = await fetch('/api/checkout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(parsed),
-          signal: AbortSignal.timeout(30000),
-        })
+        let response: Response
+
+        try {
+          response = await fetch('/api/checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(parsed),
+            signal: AbortSignal.timeout(30000),
+          })
+        } finally {
+          notifyLotStatusRefresh()
+        }
 
         const checkout = await response.json() as {
           linkPagamento?: string

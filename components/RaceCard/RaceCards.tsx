@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Check, AlertCircle, Zap, UserPlus, CreditCard, X, Calendar, FileText, ChevronDown, ExternalLink } from 'lucide-react'
 import { raceKits } from '@/data/race-data'
@@ -21,6 +21,130 @@ const defaultKitColors = [
   { color: '#ffffff', name: 'Branco' },
   { color: '#000000', name: 'Preto' },
 ]
+
+const LOT_STATUS_POLLING_MS = 10000
+
+type LoteStatus = {
+  id: string
+  nomeEvento?: string
+  distance?: RaceKit['distance']
+  lotLabel: string
+  lotOrder: number
+  price?: number
+  percentualVendido: number
+  vendidos: number
+  capacidade: number
+  vagasRestantes: number
+  disponivel: boolean
+  motivoIndisponibilidade?: string
+  raw: Record<string, unknown>
+}
+
+type RaceKitWithStatus = RaceKit & {
+  backendKitId: string
+  backendLotLabel: string
+  backendLotOrder: number
+  backendPrice?: number
+  percentualVendido: number
+  vendidos: number
+  capacidade: number
+  vagasRestantes: number
+  disponivel: boolean
+  motivoIndisponibilidade?: string
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : null
+}
+
+function getString(source: Record<string, unknown>, keys: string[]) {
+  for (const key of keys) {
+    const value = source[key]
+    if (typeof value === 'string' && value.trim()) return value.trim()
+    if (typeof value === 'number') return String(value)
+  }
+
+  return ''
+}
+
+function getNumber(source: Record<string, unknown>, keys: string[], fallback = 0) {
+  for (const key of keys) {
+    const value = source[key]
+    if (typeof value === 'number' && Number.isFinite(value)) return value
+    if (typeof value === 'string' && value.trim()) {
+      const normalized = value.replace(',', '.')
+      if (Number.isFinite(Number(normalized))) return Number(normalized)
+    }
+  }
+
+  return fallback
+}
+
+function getBoolean(source: Record<string, unknown>, keys: string[], fallback = false) {
+  for (const key of keys) {
+    const value = source[key]
+    if (typeof value === 'boolean') return value
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase()
+      if (['true', '1', 'sim', 'yes'].includes(normalized)) return true
+      if (['false', '0', 'nao', 'não', 'no'].includes(normalized)) return false
+    }
+  }
+
+  return fallback
+}
+
+function extractStatusItems(payload: unknown): Record<string, unknown>[] {
+  if (Array.isArray(payload)) return payload.map(asRecord).filter(Boolean) as Record<string, unknown>[]
+
+  const record = asRecord(payload)
+  if (!record) return []
+
+  for (const key of ['lotes', 'data', 'status', 'items', 'content']) {
+    const value = record[key]
+    if (Array.isArray(value)) return value.map(asRecord).filter(Boolean) as Record<string, unknown>[]
+  }
+
+  return [record]
+}
+
+function normalizeLoteStatus(payload: unknown): LoteStatus[] {
+  return extractStatusItems(payload).map((item, index) => {
+    const id = getString(item, ['id', 'kitId', 'loteId'])
+    const lotOrder = getNumber(item, ['numeroLote', 'lote', 'ordem'], index + 1)
+    const vagasRestantes = getNumber(item, ['vagasRestantes', 'vagasReservaveis'])
+    const capacidade = getNumber(item, ['capacidade'])
+    const vendidos = getNumber(item, ['vendidos'])
+    const percentualVendido = Math.max(0, Math.min(100, getNumber(item, ['percentualVendido'])))
+    const disponivel = getBoolean(item, ['disponivel'], false)
+    const lotName = getString(item, ['nomeLote', 'nome', 'descricaoLote'])
+
+    return {
+      id,
+      nomeEvento: getString(item, ['nomeEvento', 'evento', 'eventName']),
+      distance: getString(item, ['distance', 'distancia']) as RaceKit['distance'],
+      lotLabel: lotName || `Lote ${lotOrder}`,
+      lotOrder,
+      price: getNumber(item, ['preco', 'price', 'valor'], Number.NaN),
+      percentualVendido,
+      vendidos,
+      capacidade,
+      vagasRestantes,
+      disponivel,
+      motivoIndisponibilidade: getString(item, ['motivoIndisponibilidade', 'motivo', 'statusMensagem']),
+      raw: item,
+    }
+  }).filter(item => item.id)
+}
+
+function formatCurrency(value?: number) {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return null
+
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(value)
+}
 
 // ─── Hook: trava só o overflow do body ───────────────────────────────────────
 
@@ -58,7 +182,7 @@ interface ModalState {
   shoeNumber: string
   teamName: string
   kitColor: string
-  kit: RaceKit | null
+  kit: RaceKitWithStatus | null
   userData: { name: string; email: string; cpf: string; phone: string; dataNascimento: string } | null
 }
 
@@ -70,7 +194,7 @@ function RaceCard({
   openDocumentsKitId,
   onToggleDocuments,
 }: {
-  kit: RaceKit
+  kit: RaceKitWithStatus
   featured?: boolean
   openDocumentsKitId: string | null
   onToggleDocuments: (kitId: string) => void
@@ -79,11 +203,8 @@ function RaceCard({
   const kitColors = kit.kitColors?.length ? kit.kitColors : defaultKitColors
   const initialKitColor = kitColors[0]?.color ?? '#d7ff32'
   const documents = kit.documents ?? []
-  const isDocumentsOpen = openDocumentsKitId === kit.id
-  const totalSlots = Math.max(kit.availableSlots, 0)
-  const soldSlots = Math.min(Math.max(kit.soldSlots ?? 0, 0), totalSlots)
-  const remainingSlots = Math.max(totalSlots - soldSlots, 0)
-  const soldPercentage = totalSlots > 0 ? Math.round((soldSlots / totalSlots) * 100) : 0
+  const isDocumentsOpen = openDocumentsKitId === kit.backendKitId
+  const price = formatCurrency(kit.backendPrice)
 
   useEffect(() => {
     void loadMercadoPago()
@@ -187,6 +308,17 @@ function RaceCard({
 
   const handleBuyClick = () => {
     if (!isFormValid) { showValidationError(); return }
+    if (!kit.disponivel) {
+      setState(prev => ({
+        ...prev,
+        message: {
+          type: 'error',
+          text: kit.motivoIndisponibilidade || 'Este lote não está disponível para compra.',
+        },
+      }))
+      return
+    }
+
     setModal({
       isOpen: true,
       size: 'M',
@@ -211,7 +343,9 @@ function RaceCard({
   const handleConfirmPurchase = () => {
     const selectedKitColor = kitColors.find(({ color }) => color === modal.kitColor)
     const paymentData = {
-      kitId: modal.kit?.id,
+      kitId: modal.kit?.backendKitId,
+      eventName: modal.kit?.raceName,
+      distance: modal.kit?.distance,
       user: modal.userData,
       shirtSize: modal.size,
       gender: modal.gender,
@@ -233,7 +367,7 @@ function RaceCard({
         {featured && (
           <FeaturedBadge>
             <Zap size={12} />
-            Mais Popular
+            Lote Atual
           </FeaturedBadge>
         )}
 
@@ -244,27 +378,23 @@ function RaceCard({
 
         <LotInfo>
           <LotHeader>
-            <LotBadge>Lote {kit.lot}</LotBadge>
-            <Slots>{remainingSlots} vagas disponíveis</Slots>
+            <LotBadge>{kit.backendLotLabel}</LotBadge>
+            <Slots>{kit.vagasRestantes} vagas disponíveis</Slots>
           </LotHeader>
-          {kit.soldSlots !== undefined && (
-            <>
-              <ProgressBarContainer>
-                <ProgressBarFill
-                  $percentage={soldPercentage}
-                  $critical={soldPercentage >= 90}
-                />
-              </ProgressBarContainer>
-              <ProgressLabel>
-                <span>{soldSlots} vendidas</span>
-                <span>{soldPercentage}% ocupado</span>
-              </ProgressLabel>
-            </>
-          )}
+          <ProgressBarContainer>
+            <ProgressBarFill
+              $percentage={kit.percentualVendido}
+              $critical={kit.percentualVendido >= 90}
+            />
+          </ProgressBarContainer>
+          <ProgressLabel>
+            <span>{kit.vendidos}/{kit.capacidade} vendidas</span>
+            <span>{kit.percentualVendido}% vendido</span>
+          </ProgressLabel>
         </LotInfo>
 
         <Price>
-          R$ {kit.price.toFixed(2).replace('.', ',')} <small>/ kit</small>
+          {price ?? 'Preço no checkout'} <small>/ kit</small>
         </Price>
 
         <FormGroup>
@@ -356,11 +486,18 @@ function RaceCard({
               <><UserPlus size={18} />Inscrever</>
             )}
           </ActionButton>
-          <ActionButton type="button" $variant="buy" onClick={handleBuyClick} disabled={!isFormValid}>
+          <ActionButton type="button" $variant="buy" onClick={handleBuyClick} disabled={!isFormValid || !kit.disponivel}>
             <CreditCard size={18} />
-            Comprar Kit
+            {kit.disponivel ? 'Comprar Kit' : 'Indisponível'}
           </ActionButton>
         </ButtonGroup>
+
+        {!kit.disponivel && kit.motivoIndisponibilidade && (
+          <Message $type="error">
+            <AlertCircle size={16} />
+            {kit.motivoIndisponibilidade}
+          </Message>
+        )}
 
         {documents.length > 0 && (
           <DocumentButtonRow>
@@ -368,7 +505,7 @@ function RaceCard({
               type="button"
               $variant="docs"
               $expanded={isDocumentsOpen}
-              onClick={() => onToggleDocuments(kit.id)}
+              onClick={() => onToggleDocuments(kit.backendKitId)}
               aria-expanded={isDocumentsOpen}
             >
               <FileText size={18} />
@@ -411,7 +548,7 @@ function RaceCard({
           <ModalSubtitle>Escolha a categoria, tamanho da camisa e numeração</ModalSubtitle>
 
           <PriceTag>
-            <span>R$ {kit.price.toFixed(2).replace('.', ',')}</span>
+            <span>{price ?? 'Preço no checkout'}</span>
           </PriceTag>
 
           <FormGroup>
@@ -495,7 +632,7 @@ function RaceCard({
             </ColorSelector>
           </FormGroup>
 
-          <ConfirmButton type="button" onClick={handleConfirmPurchase}>
+          <ConfirmButton type="button" onClick={handleConfirmPurchase} disabled={!kit.disponivel}>
             <CreditCard size={18} />
             Ir para Pagamento
           </ConfirmButton>
@@ -509,6 +646,106 @@ function RaceCard({
 
 export default function RaceCards() {
   const [openDocumentsKitId, setOpenDocumentsKitId] = useState<string | null>(null)
+  const [statusByEvent, setStatusByEvent] = useState<Record<string, LoteStatus[]>>({})
+  const [statusError, setStatusError] = useState<string | null>(null)
+  const [isLoadingStatus, setIsLoadingStatus] = useState(true)
+
+  const eventNames = useMemo(
+    () => Array.from(new Set(raceKits.map(kit => kit.raceName))),
+    [],
+  )
+
+  const refreshStatuses = useCallback(async () => {
+    try {
+      const results = await Promise.all(eventNames.map(async nomeEvento => {
+        const response = await fetch(`/api/lotes/status?nomeEvento=${encodeURIComponent(nomeEvento)}`, {
+          cache: 'no-store',
+        })
+        const payload = await response.json()
+
+        if (!response.ok) {
+          const message = payload?.erro ?? payload?.message ?? `Nao foi possivel consultar lotes de ${nomeEvento}.`
+          throw new Error(message)
+        }
+
+        return [nomeEvento, normalizeLoteStatus(payload)] as const
+      }))
+
+      setStatusByEvent(Object.fromEntries(results))
+      setStatusError(null)
+    } catch (error) {
+      setStatusError(error instanceof Error ? error.message : 'Nao foi possivel consultar os lotes agora.')
+    } finally {
+      setIsLoadingStatus(false)
+    }
+  }, [eventNames])
+
+  useEffect(() => {
+    void refreshStatuses()
+
+    const intervalId = window.setInterval(() => {
+      void refreshStatuses()
+    }, LOT_STATUS_POLLING_MS)
+
+    const refreshOnFocus = () => {
+      void refreshStatuses()
+    }
+
+    const refreshOnCheckoutAttempt = (event: StorageEvent) => {
+      if (event.key === 'lotesStatusRefreshAt') void refreshStatuses()
+    }
+
+    window.addEventListener('focus', refreshOnFocus)
+    window.addEventListener('storage', refreshOnCheckoutAttempt)
+
+    return () => {
+      window.clearInterval(intervalId)
+      window.removeEventListener('focus', refreshOnFocus)
+      window.removeEventListener('storage', refreshOnCheckoutAttempt)
+    }
+  }, [refreshStatuses])
+
+  const kitsWithStatus = useMemo(() => {
+    return raceKits.flatMap(kit => {
+      const statuses = [...(statusByEvent[kit.raceName] ?? [])].sort((a, b) =>
+        String(a.distance || kit.distance).localeCompare(String(b.distance || kit.distance)) ||
+        a.lotOrder - b.lotOrder
+      )
+
+      return statuses.map(status => ({
+        ...kit,
+        id: status.id,
+        distance: status.distance || kit.distance,
+        backendKitId: status.id,
+        backendLotLabel: status.lotLabel,
+        backendLotOrder: status.lotOrder,
+        backendPrice: status.price,
+        percentualVendido: status.percentualVendido,
+        vendidos: status.vendidos,
+        capacidade: status.capacidade,
+        vagasRestantes: status.vagasRestantes,
+        disponivel: status.disponivel,
+        motivoIndisponibilidade: status.motivoIndisponibilidade,
+      }))
+    })
+  }, [statusByEvent])
+
+  const featuredLotIds = useMemo(() => {
+    const seenGroups = new Set<string>()
+    const ids = new Set<string>()
+
+    kitsWithStatus.forEach(kit => {
+      if (!kit.disponivel) return
+
+      const key = `${kit.raceName}::${kit.distance}`
+      if (!seenGroups.has(key)) {
+        seenGroups.add(key)
+        ids.add(kit.backendKitId)
+      }
+    })
+
+    return ids
+  }, [kitsWithStatus])
 
   const handleToggleDocuments = (kitId: string) => {
     setOpenDocumentsKitId(currentKitId => currentKitId === kitId ? null : kitId)
@@ -523,12 +760,23 @@ export default function RaceCards() {
             Selecione a distância ideal para você e garanta seu kit com a camisa oficial do evento
           </SectionSubtitle>
         </SectionHeader>
+        {statusError && (
+          <Message $type="error">
+            <AlertCircle size={16} />
+            {statusError}
+          </Message>
+        )}
         <Grid>
-          {raceKits.map((kit, index) => (
+          {isLoadingStatus && kitsWithStatus.length === 0 && (
+            <Message $type="success">
+              Consultando lotes disponíveis...
+            </Message>
+          )}
+          {kitsWithStatus.map(kit => (
             <RaceCard
-              key={kit.id}
+              key={kit.backendKitId}
               kit={kit}
-              featured={index === 2}
+              featured={featuredLotIds.has(kit.backendKitId)}
               openDocumentsKitId={openDocumentsKitId}
               onToggleDocuments={handleToggleDocuments}
             />
