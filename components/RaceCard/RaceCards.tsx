@@ -273,12 +273,8 @@ function RaceCard({
   const isDocumentsOpen = openDocumentsKitId === kit.backendKitId
   const cardPrice = formatCurrency(getPrecoLote(kit))
   const availableCategories = useMemo<GenderCategory[]>(() => {
-    const categories: GenderCategory[] = ['Masculino', 'Feminino', 'LGBTQIA+', '60+']
-
-    if (kit.possuiPrecoPcdAtivo) categories.push('PCD')
-
-    return categories
-  }, [kit.possuiPrecoPcdAtivo])
+    return ['Masculino', 'Feminino', 'LGBTQIA+', '60+', 'PCD']
+  }, [])
 
   useEffect(() => {
     void loadMercadoPago()
