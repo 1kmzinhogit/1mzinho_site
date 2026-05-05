@@ -31,6 +31,7 @@ type LoteStatus = {
   lotLabel: string
   lotOrder: number
   price?: number
+  precos: LotePreco[]
   percentualVendido: number
   vendidos: number
   capacidade: number
@@ -46,6 +47,7 @@ type RaceKitWithStatus = RaceKit & {
   backendLotLabel: string
   backendLotOrder: number
   backendPrice?: number
+  precos: LotePreco[]
   percentualVendido: number
   vendidos: number
   capacidade: number
@@ -53,6 +55,13 @@ type RaceKitWithStatus = RaceKit & {
   disponivel: boolean
   possuiPrecoPcdAtivo: boolean
   motivoIndisponibilidade?: string
+}
+
+type ApiCategoria = 'MASCULINO' | 'FEMININO' | 'MAIOR_60' | 'LGBTQIA' | 'PCD'
+
+type LotePreco = {
+  categoria: string
+  valor: number
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -96,19 +105,57 @@ function getBoolean(source: Record<string, unknown>, keys: string[], fallback = 
   return fallback
 }
 
-function hasActiveCategoryPrice(source: Record<string, unknown>, category: string) {
+function normalizarCategoriaPreco(categoria?: string): ApiCategoria | null {
+  const value = String(categoria || '').toLowerCase()
+
+  if (value === 'pcd' || value.includes('pcd')) return 'PCD'
+  if (value.includes('60') || value.includes('maior_60')) return 'MAIOR_60'
+  if (value.includes('fem')) return 'FEMININO'
+  if (value.includes('lgbt')) return 'LGBTQIA'
+  if (value.includes('masc')) return 'MASCULINO'
+
+  return null
+}
+
+function normalizePrecos(source: Record<string, unknown>): LotePreco[] {
   const precos = source.precos
-  if (!Array.isArray(precos)) return false
+  if (!Array.isArray(precos)) return []
 
-  return precos.some(preco => {
+  return precos.map(preco => {
     const record = asRecord(preco)
-    if (!record) return false
+    if (!record) return null
 
-    const precoCategoria = getString(record, ['categoria'])
+    const categoria = getString(record, ['categoria'])
     const valor = getNumber(record, ['valor'], Number.NaN)
 
-    return precoCategoria === category && Number.isFinite(valor) && valor > 0
+    if (!categoria || !Number.isFinite(valor)) return null
+
+    return { categoria, valor }
+  }).filter(Boolean) as LotePreco[]
+}
+
+function hasActiveCategoryPrice(source: Record<string, unknown>, category: string) {
+  const precos = normalizePrecos(source)
+  const normalizedCategory = normalizarCategoriaPreco(category)
+  if (!normalizedCategory) return false
+
+  return precos.some(preco => {
+    return normalizarCategoriaPreco(preco.categoria) === normalizedCategory && preco.valor > 0
   })
+}
+
+function getPrecoLote(lote: { precos?: LotePreco[]; backendPrice?: number }, categoriaSelecionada?: string) {
+  const precos = Array.isArray(lote.precos) ? lote.precos : []
+  const categoriaNormalizada = normalizarCategoriaPreco(categoriaSelecionada)
+
+  const precoPorCategoria = categoriaNormalizada
+    ? precos.find(preco => normalizarCategoriaPreco(preco.categoria) === categoriaNormalizada)?.valor
+    : undefined
+
+  const precoFallback = precos[0]?.valor
+  const valor = Number(precoPorCategoria ?? precoFallback ?? lote.backendPrice)
+
+  return Number.isFinite(valor) ? valor : null
 }
 
 function extractStatusItems(payload: unknown): Record<string, unknown>[] {
@@ -134,7 +181,8 @@ function normalizeLoteStatus(payload: unknown): LoteStatus[] {
     const vendidos = getNumber(item, ['vendidos'])
     const percentualVendido = Math.max(0, Math.min(100, getNumber(item, ['percentualVendido'])))
     const disponivel = getBoolean(item, ['disponivel'], false)
-    const lotName = getString(item, ['nomeLote', 'nome', 'descricaoLote'])
+    const lotName = getString(item, ['lote', 'nomeLote', 'nome', 'descricaoLote'])
+    const precos = normalizePrecos(item)
 
     return {
       id,
@@ -142,7 +190,8 @@ function normalizeLoteStatus(payload: unknown): LoteStatus[] {
       distance: getString(item, ['distance', 'distancia']) as RaceKit['distance'],
       lotLabel: lotName || `Lote ${lotOrder}`,
       lotOrder,
-      price: getNumber(item, ['preco', 'price', 'valor'], Number.NaN),
+      price: getPrecoLote({ precos, backendPrice: getNumber(item, ['preco', 'price', 'valor'], Number.NaN) }) ?? undefined,
+      precos,
       percentualVendido,
       vendidos,
       capacidade,
@@ -155,7 +204,7 @@ function normalizeLoteStatus(payload: unknown): LoteStatus[] {
   }).filter(item => item.id)
 }
 
-function formatCurrency(value?: number) {
+function formatCurrency(value?: number | null) {
   if (typeof value !== 'number' || !Number.isFinite(value)) return null
 
   return new Intl.NumberFormat('pt-BR', {
@@ -222,7 +271,7 @@ function RaceCard({
   const initialKitColor = kitColors[0]?.color ?? '#d7ff32'
   const documents = kit.documents ?? []
   const isDocumentsOpen = openDocumentsKitId === kit.backendKitId
-  const price = formatCurrency(kit.backendPrice)
+  const cardPrice = formatCurrency(getPrecoLote(kit))
   const availableCategories = useMemo<GenderCategory[]>(() => {
     const categories: GenderCategory[] = ['Masculino', 'Feminino', 'LGBTQIA+', '60+']
 
@@ -259,6 +308,9 @@ function RaceCard({
   })
 
   useScrollLock(modal.isOpen)
+
+  const modalPriceCategory = modal.isElderly ? '60+' : modal.gender
+  const modalPrice = formatCurrency(getPrecoLote(kit, modalPriceCategory))
 
   // ── Formatters ───────────────────────────────────────────────────────────────
 
@@ -420,7 +472,7 @@ function RaceCard({
         </LotInfo>
 
         <Price>
-          {price ?? 'Preço no checkout'} <small>/ kit</small>
+          {cardPrice ?? 'Preço no checkout'} <small>/ kit</small>
         </Price>
 
         <FormGroup>
@@ -574,7 +626,7 @@ function RaceCard({
           <ModalSubtitle>Escolha a categoria, tamanho da camisa e numeração</ModalSubtitle>
 
           <PriceTag>
-            <span>{price ?? 'Preço no checkout'}</span>
+            <span>{modalPrice ?? 'Preço no checkout'}</span>
           </PriceTag>
 
           <FormGroup>
@@ -746,6 +798,7 @@ export default function RaceCards() {
         backendLotLabel: status.lotLabel,
         backendLotOrder: status.lotOrder,
         backendPrice: status.price,
+        precos: status.precos,
         percentualVendido: status.percentualVendido,
         vendidos: status.vendidos,
         capacidade: status.capacidade,
