@@ -8,19 +8,35 @@ type BackendError = {
   detail?: string
 }
 
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : null
+}
+
+function filterByNomeEvento(payload: unknown, nomeEvento: string) {
+  const record = asRecord(payload)
+  const lotes = record?.lotes
+
+  if (!Array.isArray(lotes)) return payload
+
+  const normalizedNomeEvento = nomeEvento.trim().toLowerCase()
+
+  return {
+    ...record,
+    lotes: lotes.filter(item => {
+      const lote = asRecord(item)
+      const itemNomeEvento = String(lote?.nomeEvento ?? '').trim().toLowerCase()
+
+      return itemNomeEvento === normalizedNomeEvento
+    }),
+  }
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const nomeEvento = searchParams.get('nomeEvento')?.trim()
 
-  if (!nomeEvento) {
-    return NextResponse.json(
-      { erro: 'Parametro obrigatorio ausente: nomeEvento.' },
-      { status: 400 },
-    )
-  }
-
   try {
-    const response = await fetch(`${API_BASE_URL}/lotes/status?nomeEvento=${encodeURIComponent(nomeEvento)}`, {
+    const response = await fetch(`${API_BASE_URL}/lotes/status`, {
       method: 'GET',
       headers: { Accept: 'application/json' },
       cache: 'no-store',
@@ -50,7 +66,7 @@ export async function GET(request: Request) {
       )
     }
 
-    return NextResponse.json(result, {
+    return NextResponse.json(nomeEvento ? filterByNomeEvento(result, nomeEvento) : result, {
       headers: {
         'Cache-Control': 'no-store',
       },

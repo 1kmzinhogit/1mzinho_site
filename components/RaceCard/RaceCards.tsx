@@ -724,35 +724,36 @@ export default function RaceCards() {
   const [statusError, setStatusError] = useState<string | null>(null)
   const [isLoadingStatus, setIsLoadingStatus] = useState(true)
 
-  const eventNames = useMemo(
-    () => Array.from(new Set(raceKits.map(kit => kit.raceName))),
-    [],
-  )
-
   const refreshStatuses = useCallback(async () => {
     try {
-      const results = await Promise.all(eventNames.map(async nomeEvento => {
-        const response = await fetch(`/api/lotes/status?nomeEvento=${encodeURIComponent(nomeEvento)}`, {
-          cache: 'no-store',
-        })
-        const payload = await response.json()
+      const response = await fetch('/api/lotes/status', {
+        cache: 'no-store',
+      })
+      const payload = await response.json()
 
-        if (!response.ok) {
-          const message = payload?.erro ?? payload?.message ?? `Nao foi possivel consultar lotes de ${nomeEvento}.`
-          throw new Error(message)
+      if (!response.ok) {
+        const message = payload?.erro ?? payload?.message ?? 'Nao foi possivel consultar lotes.'
+        throw new Error(message)
+      }
+
+      const groupedStatuses = normalizeLoteStatus(payload).reduce<Record<string, LoteStatus[]>>((groups, status) => {
+        const nomeEvento = status.nomeEvento?.trim()
+        if (!nomeEvento) return groups
+
+        return {
+          ...groups,
+          [nomeEvento]: [...(groups[nomeEvento] ?? []), status],
         }
+      }, {})
 
-        return [nomeEvento, normalizeLoteStatus(payload)] as const
-      }))
-
-      setStatusByEvent(Object.fromEntries(results))
+      setStatusByEvent(groupedStatuses)
       setStatusError(null)
     } catch (error) {
       setStatusError(error instanceof Error ? error.message : 'Nao foi possivel consultar os lotes agora.')
     } finally {
       setIsLoadingStatus(false)
     }
-  }, [eventNames])
+  }, [])
 
   useEffect(() => {
     void refreshStatuses()
