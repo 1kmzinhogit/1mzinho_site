@@ -1,17 +1,17 @@
 import type { RaceKit, Sponsor } from '@/types/race'
 
 export const raceKits: RaceKit[] = [
-  // {
-  //   id: '1km-lote1',
-  //   raceName: '1kmzinho Kids',
-  //   distance: '1km',
-  //   price: 49.90,
-  //   lot: 1,
-  //   availableSlots: 100,
-  //   soldSlots: 25,
-  //   description: 'Corrida especial para crianças de 5 a 10 anos',
-  //   img: "/banner.png"
-  // },
+  {
+    id: '1km-lote1',
+    raceName: '1kmzinho Kids',
+    distance: '1km',
+    price: 50.00,
+    lot: 1,
+    availableSlots: 100,
+    soldSlots: 25,
+    description: 'Corrida especial para crianças de 5 a 10 anos',
+    img: "/banner.png"
+  },
   // {
   //   id: '3km-lote1',
   //   raceName: 'Desafio 3K',

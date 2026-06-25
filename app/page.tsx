@@ -13,7 +13,7 @@ export default function Home() {
     <main>
       <Header />
       <HeroBanner />
-      <SponsorsSlider />
+      {/* <SponsorsSlider /> */}
       <RaceCards />
       <LocationSection />
       <ContactSection />
