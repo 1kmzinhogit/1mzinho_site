@@ -10,7 +10,7 @@ export const raceKits: RaceKit[] = [
     availableSlots: 100,
     soldSlots: 25,
     description: 'Corrida especial para crianças de 5 a 10 anos',
-    img: "/banner.png"
+    img: "/teste.png"
   },
   // {
   //   id: '3km-lote1',
