@@ -8,6 +8,15 @@ export interface KitColor {
   name: string
 }
 
+export interface KitOption {
+  id: string
+  label: string
+  price: number
+  lot: number
+  availableSlots: number
+  soldSlots?: number
+}
+
 export interface RaceDocument {
   label: string
   href: string
@@ -19,11 +28,13 @@ export interface RaceKit {
   distance: RaceDistance
   price: number
   lot: number
+  lotLabel?: string
   availableSlots: number
   soldSlots?: number // vagas já vendidas (para calcular % do lote)
   description: string
   img?: string
   kitColors?: KitColor[]
+  kitOptions?: KitOption[]
   documents?: RaceDocument[]
   // dataNascimento: string
 }

@@ -201,6 +201,38 @@ export const Price = styled.div`
   }
 `
 
+export const KitOptionSelector = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+`
+
+export const KitOptionButton = styled.button<{ $selected: boolean }>`
+  padding: 0.85rem;
+  border-radius: 10px;
+  border: 1px solid ${({ $selected }) => $selected ? '#d7ff32' : 'rgba(255, 255, 255, 0.25)'};
+  background: ${({ $selected }) => $selected ? 'rgba(215, 255, 50, 0.14)' : 'rgba(255, 255, 255, 0.05)'};
+  color: #fff;
+  cursor: pointer;
+  text-align: left;
+
+  strong, span {
+    display: block;
+  }
+
+  strong {
+    font-size: 0.85rem;
+  }
+
+  span {
+    margin-top: 0.25rem;
+    color: #d7ff32;
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+`
+
 export const FormGroup = styled.div`
   margin-bottom: 1rem;
 `

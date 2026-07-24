@@ -35,18 +35,36 @@ export const raceKits: RaceKit[] = [
   //   img: "/banner3.png"
   // },
   {
-    id: '6km-lote1',
+    id: 'juntos-rumo-ao-ceu',
     raceName: 'Juntos Rumo ao Céu',
     distance: '5km',
     price: 85.00,
     lot: 1,
-    availableSlots: 150,
-    soldSlots: 145,
+    availableSlots: 300,
+    soldSlots: 0,
     description: '27/09/2026 às 6:00 • Percurso de 5 km',
     img: "/superacao.png",
     kitColors: [
       { color: '#6B21A8', name: 'Roxo' },
-    ]
+    ],
+    kitOptions: [
+      {
+        id: 'juntos-rumo-ao-ceu-kit-completo',
+        label: 'Kit Completo',
+        price: 85.00,
+        lot: 1,
+        availableSlots: 300,
+        soldSlots: 0,
+      },
+      {
+        id: 'juntos-rumo-ao-ceu-kit-simples',
+        label: 'Kit Simples',
+        price: 60.00,
+        lot: 2,
+        availableSlots: 300,
+        soldSlots: 0,
+      },
+    ],
   },
   {
     id: '21km-lote1',
