@@ -42,7 +42,7 @@ export const raceKits: RaceKit[] = [
     lot: 1,
     availableSlots: 300,
     soldSlots: 0,
-    description: '27/09/2026 às 6:00 • Percurso de 5 km',
+    description: '27/09/2026 às 6:00 • Percurso de 5 km • Corrida de Rua • Corrida + Taxa do site 5R$',
     img: "/superacao.png",
     kitColors: [
       { color: '#6B21A8', name: 'Roxo' },
