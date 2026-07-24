@@ -123,23 +123,23 @@ export const sponsors: Sponsor[] = [
 ]
 
 export const eventInfo = {
-  name: '1kmzinho',
+  name: 'Juntos Rumo ao Céu',
   tagline: 'Corrida de Rua',
-  date: '15 de Junho de 2026',
-  time: '07:00',
+  date: '09 de setembro de 2026',
+  time: '06:00',
   location: {
-    name: 'Parque Ibirapuera',
-    address: 'Av. Pedro Álvares Cabral, s/n - Vila Mariana',
-    city: 'São Paulo - SP',
+    name: 'Proximo ao IML - Mangueirão',
+    address: 'Alameda Pedroso, 46 B - mangueirão - Ref.  IML  - Entre Av. mangueirão/Av. centenário',
+    city: 'Belém - PA',
     coordinates: { lat: -23.5874, lng: -46.6576 }
   },
-  kitPickup: {
-    name: 'Arena 1kmzinho',
-    address: 'Av. Pedro Álvares Cabral, 1234 - Portão 3',
-    city: 'São Paulo - SP',
-    dates: '12 a 14 de Junho de 2026',
-    time: '10:00 às 20:00'
-  },
+  // kitPickup: {
+  //   name: 'Arena 1kmzinho',
+  //   address: 'Av. Pedro Álvares Cabral, 1234 - Portão 3',
+  //   city: 'São Paulo - SP',
+  //   dates: '12 a 14 de Junho de 2026',
+  //   time: '10:00 às 20:00'
+  // },
   contact: {
     email: '1kmzinhocorrida@gmail.com',
     phone: '(91) 996256899',
