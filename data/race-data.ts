@@ -141,10 +141,10 @@ export const eventInfo = {
     time: '10:00 às 20:00'
   },
   contact: {
-    email: 'contato@1kmzinho.com.br',
-    phone: '(11) 99999-9999',
+    email: '1kmzinhocorrida@gmail.com',
+    phone: '(91) 996256899',
     instagram: '@1kmzinho',
     facebook: '/1kmzinho',
-    whatsapp: '5511999999999'
+    whatsapp: '5591996256899'
   }
 }
