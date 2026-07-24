@@ -34,17 +34,20 @@ export const raceKits: RaceKit[] = [
   //   description: 'Percurso intermediário para todos os níveis',
   //   img: "/banner3.png"
   // },
-  // {
-  //   id: '10km-lote1',
-  //   raceName: 'Corrida manos e manas',
-  //   distance: '5km',
-  //   price: 129.90,
-  //   lot: 1,
-  //   availableSlots: 150,
-  //   soldSlots: 145,
-  //   description: 'Corrida manos e manas, venha fazer',
-  //   img: "/bannerManosManas.png"
-  // },
+  {
+    id: '6km-lote1',
+    raceName: 'Juntos Rumo ao Céu',
+    distance: '5km',
+    price: 85.00,
+    lot: 1,
+    availableSlots: 150,
+    soldSlots: 145,
+    description: '27/09/2026 às 6:00 • Percurso de 5 km',
+    img: "/superacao.png",
+    kitColors: [
+      { color: '#6B21A8', name: 'Roxo' },
+    ]
+  },
   {
     id: '21km-lote1',
     raceName: 'Meia Maratona',
