@@ -68,7 +68,7 @@ export const raceKits: RaceKit[] = [
       },
     ],
     documents: [
-      { label: 'Regulamento da corrida', href: '/pdfs/teste-compra-regulamento.pdf' }
+      { label: 'Regulamento da corrida', href: '/pdfs/regulamento_juntos_rumo_ao_ceu.pdf' }
     ],
   },
   /* {
