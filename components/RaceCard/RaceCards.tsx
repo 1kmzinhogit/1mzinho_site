@@ -285,8 +285,20 @@ function RaceCard({
   const isDocumentsOpen = openDocumentsKitId === kit.backendKitId
   const cardPrice = formatCurrency(getPrecoLote(selectedKit))
   const availableCategories = useMemo<GenderCategory[]>(() => {
-    return ['Masculino', 'Feminino', 'LGBTQIA+', '60+', 'PCD']
-  }, [])
+    const categoryLabels: Array<{ apiCategory: ApiCategoria; label: GenderCategory }> = [
+      { apiCategory: 'MASCULINO', label: 'Masculino' },
+      { apiCategory: 'FEMININO', label: 'Feminino' },
+      { apiCategory: 'LGBTQIA', label: 'LGBTQIA+' },
+      { apiCategory: 'MAIOR_60', label: '60+' },
+      { apiCategory: 'PCD', label: 'PCD' },
+    ]
+
+    return categoryLabels
+      .filter(({ apiCategory }) => selectedKit.precos.some(preco => (
+        normalizarCategoriaPreco(preco.categoria) === apiCategory && preco.valor > 0
+      )))
+      .map(({ label }) => label)
+  }, [selectedKit.precos])
 
   useEffect(() => {
     void loadMercadoPago()
@@ -676,14 +688,16 @@ function RaceCard({
             </GenderSelector>
           </FormGroup>
 
-          <ElderlyCheckbox>
-            <input
-              type="checkbox"
-              checked={modal.isElderly}
-              onChange={e => setModal(prev => ({ ...prev, isElderly: e.target.checked }))}
-            />
-            <span>Idoso (60+)</span>
-          </ElderlyCheckbox>
+          {availableCategories.includes('60+') && (
+            <ElderlyCheckbox>
+              <input
+                type="checkbox"
+                checked={modal.isElderly}
+                onChange={e => setModal(prev => ({ ...prev, isElderly: e.target.checked }))}
+              />
+              <span>Idoso (60+)</span>
+            </ElderlyCheckbox>
+          )}
 
           <FormGroup>
             <Label>Tamanho da Camisa</Label>
@@ -850,8 +864,6 @@ export default function RaceCards() {
           precos: [
             { categoria: 'MASCULINO', valor: option.price },
             { categoria: 'FEMININO', valor: option.price },
-            { categoria: 'MAIOR_60', valor: option.price },
-            { categoria: 'LGBTQIA', valor: option.price },
           ],
           percentualVendido,
           vendidos,

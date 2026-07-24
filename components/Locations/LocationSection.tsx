@@ -53,7 +53,7 @@ export default function LocationSection() {
                 </InfoContent>
               </InfoItem>
             </InfoList>
-            
+            {/* Retirando button */}
             {/* <MapButton 
               href={`https://www.google.com/maps?q=${location.coordinates.lat},${location.coordinates.lng}`}
               target="_blank"
