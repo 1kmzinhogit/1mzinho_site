@@ -12,6 +12,7 @@ export interface KitOption {
   id: string
   label: string
   price: number
+  siteFee?: number
   lot: number
   availableSlots: number
   soldSlots?: number

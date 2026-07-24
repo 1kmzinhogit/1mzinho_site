@@ -505,15 +505,26 @@ function RaceCard({
           <Label>Escolha seu kit</Label>
           <KitOptionSelector>
             {kitOptions.map(option => (
-              <KitOptionButton
-                key={option.backendKitId}
-                type="button"
-                $selected={selectedKit.backendKitId === option.backendKitId}
-                onClick={() => setSelectedKitId(option.backendKitId)}
-              >
-                <strong>{option.backendLotLabel}</strong>
-                <span>{formatCurrency(getPrecoLote(option)) ?? 'Preço no checkout'}</span>
-              </KitOptionButton>
+              (() => {
+                const configuredOption = kit.kitOptions?.find(config => config.id === option.backendKitId)
+                const siteFee = configuredOption?.siteFee ?? 0
+                const basePrice = configuredOption?.price ?? getPrecoLote(option)
+                const priceLabel = siteFee > 0 && basePrice !== null
+                  ? `${formatCurrency(basePrice)} + ${formatCurrency(siteFee)} taxa`
+                  : formatCurrency(getPrecoLote(option)) ?? 'Preço no checkout'
+
+                return (
+                  <KitOptionButton
+                    key={option.backendKitId}
+                    type="button"
+                    $selected={selectedKit.backendKitId === option.backendKitId}
+                    onClick={() => setSelectedKitId(option.backendKitId)}
+                  >
+                    <strong>{option.backendLotLabel}</strong>
+                    <span>{priceLabel}</span>
+                  </KitOptionButton>
+                )
+              })()
             ))}
           </KitOptionSelector>
         </FormGroup>
@@ -842,6 +853,7 @@ export default function RaceCards() {
             id: kit.id,
             label: kit.lotLabel ?? `Lote ${kit.lot}`,
             price: kit.price,
+            siteFee: 0,
             lot: kit.lot,
             availableSlots: kit.availableSlots,
             soldSlots: kit.soldSlots,
@@ -853,6 +865,7 @@ export default function RaceCards() {
         if (matchingStatuses.length === 0) {
           const vendidos = option.soldSlots ?? 0
           const capacidade = option.availableSlots
+          const valorFinal = option.price + (option.siteFee ?? 0)
         const percentualVendido = capacidade > 0 ? Math.min(100, Math.round((vendidos / capacidade) * 100)) : 0
 
         return [{
@@ -860,10 +873,10 @@ export default function RaceCards() {
           backendKitId: option.id,
           backendLotLabel: option.label,
           backendLotOrder: option.lot,
-          backendPrice: option.price,
+          backendPrice: valorFinal,
           precos: [
-            { categoria: 'MASCULINO', valor: option.price },
-            { categoria: 'FEMININO', valor: option.price },
+            { categoria: 'MASCULINO', valor: valorFinal },
+            { categoria: 'FEMININO', valor: valorFinal },
           ],
           percentualVendido,
           vendidos,
