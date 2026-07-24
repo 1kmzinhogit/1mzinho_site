@@ -605,7 +605,7 @@ function RaceCard({
         </FormGroup>
 
         <ButtonGroup>
-          <ActionButton
+          {/* <ActionButton
             type="button"
             $variant="subscribe"
             $success={state.subscribeSuccess}
@@ -617,7 +617,7 @@ function RaceCard({
             ) : (
               <><UserPlus size={18} />Inscrever</>
             )}
-          </ActionButton>
+          </ActionButton> */}
           <ActionButton type="button" $variant="buy" onClick={handleBuyClick} disabled={!isFormValid || !isEventAvailable}>
             <CreditCard size={18} />
             {isEventAvailable ? 'Comprar Kit' : 'Indisponível'}
