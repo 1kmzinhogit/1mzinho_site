@@ -1,7 +1,7 @@
 import type { RaceKit, Sponsor } from '@/types/race'
 
 export const raceKits: RaceKit[] = [
-  {
+  /* {
     id: '1km-lote1',
     raceName: '1kmzinho Kids',
     distance: '1km',
@@ -11,7 +11,7 @@ export const raceKits: RaceKit[] = [
     soldSlots: 25,
     description: 'Corrida especial para crianças de 5 a 10 anos',
     img: "/teste.png"
-  },
+  }, */
   // {
   //   id: '3km-lote1',
   //   raceName: 'Desafio 3K',
@@ -65,8 +65,11 @@ export const raceKits: RaceKit[] = [
         soldSlots: 0,
       },
     ],
+    documents: [
+      { label: 'Regulamento da corrida', href: '/pdfs/teste-compra-regulamento.pdf' }
+    ],
   },
-  {
+  /* {
     id: '21km-lote1',
     raceName: 'Meia Maratona',
     distance: '21km',
@@ -86,8 +89,8 @@ export const raceKits: RaceKit[] = [
       { label: 'Informações dos kits', href: '/pdfs/meia-maratona-kits.pdf' },
       { label: 'Como retirar o kit', href: '/pdfs/meia-maratona-retirada.pdf' },
     ],
-  },
-  {
+  }, */
+  /* {
     id: 'teste-compra-lote1',
     raceName: 'Teste de Compra',
     distance: '5km',
@@ -108,7 +111,7 @@ export const raceKits: RaceKit[] = [
       { label: 'Informações dos kits', href: '/pdfs/teste-compra-kits.pdf' },
       { label: 'Como retirar o kit', href: '/pdfs/teste-compra-retirada.pdf' },
     ],
-  }
+  } */
 ]
 
 export const sponsors: Sponsor[] = [
