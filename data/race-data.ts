@@ -133,13 +133,13 @@ export const eventInfo = {
     city: 'Belém - PA',
     coordinates: { lat: -23.5874, lng: -46.6576 }
   },
-  // kitPickup: {
-  //   name: 'Arena 1kmzinho',
-  //   address: 'Av. Pedro Álvares Cabral, 1234 - Portão 3',
-  //   city: 'São Paulo - SP',
-  //   dates: '12 a 14 de Junho de 2026',
-  //   time: '10:00 às 20:00'
-  // },
+  kitPickup: {
+    name: 'Juntos Rumo ao Céu',
+    address: 'A definir',
+    city: 'Belém - PA',
+    dates: 'A definir',
+    time: 'A definir'
+  },
   contact: {
     email: '1kmzinhocorrida@gmail.com',
     phone: '(91) 996256899',
