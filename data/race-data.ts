@@ -38,7 +38,7 @@ export const raceKits: RaceKit[] = [
     id: 'juntos-rumo-ao-ceu',
     raceName: 'Juntos Rumo ao Céu',
     distance: '5km',
-    price: 85.00,
+    price: 80.00,
     lot: 1,
     availableSlots: 300,
     soldSlots: 0,
@@ -51,7 +51,7 @@ export const raceKits: RaceKit[] = [
       {
         id: 'juntos-rumo-ao-ceu-kit-completo',
         label: 'Kit Completo',
-        price: 85.00,
+        price: 80.00,
         lot: 1,
         availableSlots: 300,
         soldSlots: 0,
@@ -59,7 +59,7 @@ export const raceKits: RaceKit[] = [
       {
         id: 'juntos-rumo-ao-ceu-kit-simples',
         label: 'Kit Simples',
-        price: 60.00,
+        price: 55.00,
         lot: 2,
         availableSlots: 300,
         soldSlots: 0,
