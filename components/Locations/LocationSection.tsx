@@ -97,14 +97,14 @@ export default function LocationSection() {
               </InfoItem>
             </InfoList>
             
-            <MapButton 
+            {/* <MapButton 
               href={`https://www.google.com/maps?q=${location.coordinates.lat},${location.coordinates.lng}`}
               target="_blank"
               rel="noopener noreferrer"
             >
               <Navigation size={16} />
               Ver no Google Maps
-            </MapButton>
+            </MapButton> */}
           </Card>
         </Grid>
       </Container>
