@@ -54,17 +54,17 @@ export default function LocationSection() {
               </InfoItem>
             </InfoList>
             
-            <MapButton 
+            {/* <MapButton 
               href={`https://www.google.com/maps?q=${location.coordinates.lat},${location.coordinates.lng}`}
               target="_blank"
               rel="noopener noreferrer"
             >
               <Navigation size={16} />
               Ver no Google Maps
-            </MapButton>
+            </MapButton> */}
           </Card>
           
-          <Card>
+          {/* <Card>
             <CardIcon>
               <Calendar size={28} />
             </CardIcon>
@@ -95,7 +95,7 @@ export default function LocationSection() {
                   <p>{kitPickup.time}</p>
                 </InfoContent>
               </InfoItem>
-            </InfoList>
+            </InfoList> */}
             
             {/* <MapButton 
               href={`https://www.google.com/maps?q=${location.coordinates.lat},${location.coordinates.lng}`}
@@ -105,7 +105,7 @@ export default function LocationSection() {
               <Navigation size={16} />
               Ver no Google Maps
             </MapButton> */}
-          </Card>
+          {/* </Card> */}
         </Grid>
       </Container>
     </Section>
