@@ -1,8 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Check, AlertCircle, Zap, UserPlus, CreditCard, X, Calendar, FileText, ChevronDown, ExternalLink } from 'lucide-react'
+import { Check, AlertCircle, Zap, UserPlus, CreditCard, X, Calendar, FileText, ChevronDown, ExternalLink, Loader2 } from 'lucide-react'
 import { raceKits } from '@/data/race-data'
 import type { RaceKit, ShirtSize, GenderCategory } from '@/types/race'
 import { loadMercadoPago } from '@mercadopago/sdk-js'
@@ -14,7 +13,7 @@ import {
   ModalSubtitle, PriceTag, SizeSelector, SizeButton, ShoeNumberInput, ConfirmButton,
   GenderSelector, GenderButton, ElderlyCheckbox, TeamNameInput, ColorSelector, ColorButton, ColorLabel,
   ProgressBarContainer, ProgressBarFill, ProgressLabel, BannerCorrida, DocumentsPanel, DocumentLink, DocumentButtonRow,
-  KitOptionSelector, KitOptionButton,
+  KitOptionSelector, KitOptionButton, CheckoutLoadingOverlay, CheckoutLoadingCard,
 } from './Style'
 
 const defaultKitColors = [
@@ -269,7 +268,6 @@ function RaceCard({
   openDocumentsKitId: string | null
   onToggleDocuments: (kitId: string) => void
 }) {
-  const router = useRouter()
   const [selectedKitId, setSelectedKitId] = useState(kitOptions[0]?.backendKitId ?? kit.backendKitId)
   const selectedKit = kitOptions.find(option => option.backendKitId === selectedKitId) ?? kitOptions[0] ?? kit
   const sharedCapacity = kit.availableSlots
@@ -326,6 +324,8 @@ function RaceCard({
     kit: null,
     userData: null,
   })
+  const [isCheckoutLoading, setIsCheckoutLoading] = useState(false)
+  const [checkoutError, setCheckoutError] = useState<string | null>(null)
 
   useScrollLock(modal.isOpen)
 
@@ -448,9 +448,20 @@ function RaceCard({
     })
   }
 
-  const closeModal = () => setModal(prev => ({ ...prev, isOpen: false }))
+  const closeModal = () => {
+    if (isCheckoutLoading) return
+    setCheckoutError(null)
+    setModal(prev => ({ ...prev, isOpen: false }))
+  }
 
-  const handleConfirmPurchase = () => {
+  const handleConfirmPurchase = async () => {
+    if (isCheckoutLoading) return
+
+    if (!isFormValid || !modal.userData) {
+      setCheckoutError('Preencha todos os campos obrigatórios corretamente, incluindo um e-mail válido.')
+      return
+    }
+
     const selectedKitColor = kitColors.find(({ color }) => color === modal.kitColor)
     const paymentData = {
       kitId: modal.kit?.backendKitId,
@@ -466,8 +477,40 @@ function RaceCard({
       kitColor: modal.kitColor,
       kitColorName: selectedKitColor?.name ?? '',
     }
-    sessionStorage.setItem('pendingPayment', JSON.stringify(paymentData))
-    router.push('/pagamento/processar')
+
+    setCheckoutError(null)
+    setIsCheckoutLoading(true)
+
+    try {
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(paymentData),
+      })
+      const result = await response.json() as {
+        linkPagamento?: string
+        init_point?: string
+        sandbox_init_point?: string
+        url?: string
+        erro?: string
+        message?: string
+      }
+
+      if (!response.ok) {
+        throw new Error(result.erro ?? result.message ?? 'Não foi possível preparar o pagamento.')
+      }
+
+      const paymentUrl = result.linkPagamento ?? result.init_point ?? result.sandbox_init_point ?? result.url
+
+      if (!paymentUrl) {
+        throw new Error('A API não retornou o link de pagamento.')
+      }
+
+      window.location.assign(paymentUrl)
+    } catch (error) {
+      setCheckoutError(error instanceof Error ? error.message : 'Não foi possível preparar o pagamento.')
+      setIsCheckoutLoading(false)
+    }
   }
 
   // ── Render ───────────────────────────────────────────────────────────────────
@@ -681,12 +724,12 @@ function RaceCard({
 
       {/* ── Modal de Compra ── */}
       <ModalOverlay $isOpen={modal.isOpen} onClick={closeModal}>
-        <ModalContent onClick={e => e.stopPropagation()}>
-          <ModalClose onClick={closeModal}>
+        <ModalContent onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby={`checkout-title-${kit.id}`}>
+          <ModalClose onClick={closeModal} disabled={isCheckoutLoading} aria-label="Fechar">
             <X size={24} />
           </ModalClose>
 
-          <ModalTitle>Finalizar Compra</ModalTitle>
+          <ModalTitle id={`checkout-title-${kit.id}`}>Finalizar Compra</ModalTitle>
           <ModalSubtitle>Escolha a categoria, tamanho da camisa e numeração</ModalSubtitle>
 
           <PriceTag>
@@ -776,12 +819,29 @@ function RaceCard({
             </ColorSelector>
           </FormGroup>
 
-          <ConfirmButton type="button" onClick={handleConfirmPurchase} disabled={!isEventAvailable}>
+          {checkoutError && (
+            <Message $type="error" role="alert">
+              <AlertCircle size={16} />
+              {checkoutError}
+            </Message>
+          )}
+
+          <ConfirmButton type="button" onClick={handleConfirmPurchase} disabled={!isEventAvailable || isCheckoutLoading}>
             <CreditCard size={18} />
             Ir para Pagamento
           </ConfirmButton>
         </ModalContent>
       </ModalOverlay>
+
+      {isCheckoutLoading && (
+        <CheckoutLoadingOverlay>
+          <CheckoutLoadingCard role="status" aria-live="polite" aria-busy="true">
+            <Loader2 size={42} aria-hidden="true" />
+            <strong>Estamos preparando seu pagamento seguro…</strong>
+            <p>Não feche esta página. Você será direcionado ao Mercado Pago.</p>
+          </CheckoutLoadingCard>
+        </CheckoutLoadingOverlay>
+      )}
     </>
   )
 }

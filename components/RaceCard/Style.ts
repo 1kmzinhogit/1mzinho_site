@@ -617,6 +617,59 @@ export const ConfirmButton = styled.button`
   }
 `
 
+export const CheckoutLoadingOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(2, 8, 22, 0.86);
+  backdrop-filter: blur(7px);
+`
+
+export const CheckoutLoadingCard = styled.div`
+  width: min(100%, 420px);
+  padding: 2rem 1.5rem;
+  border: 1px solid rgba(215, 255, 50, 0.35);
+  border-radius: 20px;
+  background: linear-gradient(145deg, #0b1f4a 0%, #081638 100%);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.4);
+  color: #fff;
+  text-align: center;
+
+  svg {
+    color: #d7ff32;
+    animation: checkout-spin 0.9s linear infinite;
+  }
+
+  strong {
+    display: block;
+    margin-top: 1.25rem;
+    font-size: clamp(1.05rem, 4vw, 1.25rem);
+    line-height: 1.35;
+  }
+
+  p {
+    margin: 0.65rem auto 0;
+    max-width: 320px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+
+  @keyframes checkout-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    svg {
+      animation-duration: 1.8s;
+    }
+  }
+`
+
 export const PriceTag = styled.div`
   text-align: center;
   margin-bottom: 1.5rem;
