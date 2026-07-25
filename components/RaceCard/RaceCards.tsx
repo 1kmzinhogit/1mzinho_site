@@ -382,9 +382,11 @@ function RaceCard({
 
   // ── Validation ───────────────────────────────────────────────────────────────
 
+  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.email.trim())
+
   const isFormValid =
     Boolean(state.name.trim()) &&
-    Boolean(state.email.trim()) &&
+    isEmailValid &&
     Boolean(state.dataNascimento) &&
     state.cpf.replace(/\D/g, '').length === 11 &&
     state.phone.replace(/\D/g, '').length >= 10
@@ -392,7 +394,12 @@ function RaceCard({
   const showValidationError = () =>
     setState(prev => ({
       ...prev,
-      message: { type: 'error', text: 'Preencha todos os campos corretamente' },
+      message: {
+        type: 'error',
+        text: state.email.trim() && !isEmailValid
+          ? 'Informe um e-mail válido para receber o comprovante eletrônico'
+          : 'Preencha todos os campos obrigatórios corretamente',
+      },
     }))
 
   // ── Handlers ─────────────────────────────────────────────────────────────────
@@ -540,12 +547,15 @@ function RaceCard({
         </FormGroup>
 
         <FormGroup>
-          <Label>E-mail</Label>
+          <Label>E-mail *</Label>
           <Input
             type="email"
             placeholder="seu@email.com"
             value={state.email}
             onChange={e => setState(prev => ({ ...prev, email: e.target.value }))}
+            autoComplete="email"
+            required
+            aria-required="true"
           />
         </FormGroup>
         <FormGroup>

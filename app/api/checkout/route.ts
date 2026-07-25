@@ -31,6 +31,7 @@ type ApiCheckoutPayload = {
   kitId: string
   cpf: string
   contato: string
+  email: string
   nomeNaCamisa: string
   dataNascimento: string
   nomePessoa: string
@@ -49,11 +50,12 @@ type CheckoutApiResult = {
 
 const REQUIRED_FIELDS: Array<keyof Pick<
   ApiCheckoutPayload,
-  'kitId' | 'cpf' | 'contato' | 'nomeNaCamisa' | 'dataNascimento' | 'nomePessoa' | 'corCamisa'
+  'kitId' | 'cpf' | 'contato' | 'email' | 'nomeNaCamisa' | 'dataNascimento' | 'nomePessoa' | 'corCamisa'
 >> = [
   'kitId',
   'cpf',
   'contato',
+  'email',
   'nomeNaCamisa',
   'dataNascimento',
   'nomePessoa',
@@ -115,6 +117,7 @@ function criarPayloadApi(dados: FrontendCheckoutPayload): ApiCheckoutPayload {
     kitId,
     cpf: onlyDigits(dados.user?.cpf),
     contato: onlyDigits(dados.user?.phone),
+    email: dados.user?.email?.trim() ?? '',
     nomeNaCamisa: criarNomeNaCamisa(nomePessoa),
     dataNascimento: dados.user?.dataNascimento ?? '',
     nomePessoa,
