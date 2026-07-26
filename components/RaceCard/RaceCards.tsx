@@ -330,7 +330,7 @@ function RaceCard({
   const [shareCopied, setShareCopied] = useState(false)
 
   const handleShare = async () => {
-    const url = `${window.location.origin}${window.location.pathname}#corrida-${kit.shareSlug}`
+    const url = `${window.location.origin}/corrida/${kit.shareSlug}`
 
     try {
       if (navigator.share) {
