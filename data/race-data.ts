@@ -127,7 +127,7 @@ export const sponsors: Sponsor[] = [
 export const eventInfo = {
   name: 'Juntos Rumo ao Céu',
   tagline: 'Corrida de Rua',
-  date: '09 de setembro de 2026',
+  date: '27 de setembro de 2026',
   time: '06:00',
   location: {
     name: 'Proximo ao IML - Mangueirão',
