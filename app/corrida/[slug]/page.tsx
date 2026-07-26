@@ -25,7 +25,8 @@ export async function generateMetadata({ params }: RacePageProps): Promise<Metad
   }
 
   const origin = await getOrigin()
-  const imageUrl = race.img ? new URL(race.img, origin).toString() : undefined
+  const shareImage = race.shareImg ?? race.img
+  const imageUrl = shareImage ? new URL(shareImage, origin).toString() : undefined
   const pageUrl = `${origin}/corrida/${race.id}`
   const title = `${race.raceName} | 1kmzinho`
 
@@ -39,7 +40,13 @@ export async function generateMetadata({ params }: RacePageProps): Promise<Metad
       url: pageUrl,
       siteName: '1kmzinho',
       type: 'website',
-      images: imageUrl ? [{ url: imageUrl, alt: race.raceName }] : [],
+      images: imageUrl ? [{
+        url: imageUrl,
+        width: 1200,
+        height: 630,
+        type: race.shareImg ? 'image/jpeg' : undefined,
+        alt: race.raceName,
+      }] : [],
     },
     twitter: {
       card: 'summary_large_image',

@@ -34,6 +34,8 @@ export interface RaceKit {
   soldSlots?: number // vagas já vendidas (para calcular % do lote)
   description: string
   img?: string
+  shareImg?: string
+  shareVersion?: number
   kitColors?: KitColor[]
   kitOptions?: KitOption[]
   documents?: RaceDocument[]
