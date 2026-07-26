@@ -55,6 +55,7 @@ export const Card = styled.div<{ $featured?: boolean }>`
   position: relative;
   overflow: hidden;
   transition: all 0.3s ease;
+  scroll-margin-top: 6rem;
   
   ${({ $featured }) => $featured && `
     box-shadow: 0 0 40px rgba(215, 255, 50, 0.15);
@@ -63,6 +64,11 @@ export const Card = styled.div<{ $featured?: boolean }>`
   &:hover {
     transform: translateY(-5px);
     border-color: rgba(255, 255, 255, 0.6);
+  }
+
+  &:target {
+    border-color: #d7ff32;
+    box-shadow: 0 0 0 3px rgba(215, 255, 50, 0.18), 0 0 40px rgba(215, 255, 50, 0.22);
   }
 `
 
@@ -281,9 +287,15 @@ export const ButtonGroup = styled.div`
 
 export const DocumentButtonRow = styled.div`
   padding-top: 0.75rem;
+  display: flex;
+  gap: 0.75rem;
+
+  @media (max-width: 420px) {
+    flex-direction: column;
+  }
 `
 
-export const ActionButton = styled.button<{ $variant: 'subscribe' | 'buy' | 'docs'; $success?: boolean; $expanded?: boolean }>`
+export const ActionButton = styled.button<{ $variant: 'subscribe' | 'buy' | 'docs' | 'share'; $success?: boolean; $expanded?: boolean }>`
   flex: 1;
   display: flex;
   align-items: center;
@@ -291,14 +303,14 @@ export const ActionButton = styled.button<{ $variant: 'subscribe' | 'buy' | 'doc
   gap: 0.5rem;
   background: ${({ $variant, $success }) => {
     if ($success) return '#d7ff32';
-    if ($variant === 'docs') return 'rgba(8, 22, 56, 0.75)';
+    if ($variant === 'docs' || $variant === 'share') return 'rgba(8, 22, 56, 0.75)';
     return $variant === 'subscribe' 
       ? 'rgba(255, 255, 255, 0.08)' 
       : 'linear-gradient(135deg, rgba(215, 255, 50, 0.25) 0%, rgba(255, 255, 255, 0.2) 100%)';
   }};
   color: ${({ $variant, $success }) => {
     if ($success) return '#081638';
-    if ($variant === 'docs') return '#ffffff';
+    if ($variant === 'docs' || $variant === 'share') return '#ffffff';
     return $variant === 'subscribe' ? '#ffffff' : '#d7ff32';
   }};
   border: ${({ $variant }) => $variant === 'buy' ? '1px solid rgba(215, 255, 50, 0.45)' : '1px solid rgba(255, 255, 255, 0.45)'};
@@ -317,7 +329,7 @@ export const ActionButton = styled.button<{ $variant: 'subscribe' | 'buy' | 'doc
     ${({ $variant }) => $variant === 'buy' && `
       background: linear-gradient(135deg, rgba(215, 255, 50, 0.35) 0%, rgba(255, 255, 255, 0.28) 100%);
     `}
-    ${({ $variant }) => $variant === 'docs' && `
+    ${({ $variant }) => ($variant === 'docs' || $variant === 'share') && `
       background: rgba(255, 255, 255, 0.14);
     `}
   }

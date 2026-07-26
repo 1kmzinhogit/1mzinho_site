@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Check, AlertCircle, Zap, UserPlus, CreditCard, X, Calendar, FileText, ChevronDown, ExternalLink, Loader2 } from 'lucide-react'
+import { Check, AlertCircle, Zap, UserPlus, CreditCard, X, Calendar, FileText, ChevronDown, ExternalLink, Loader2, Share2 } from 'lucide-react'
 import { raceKits } from '@/data/race-data'
 import type { RaceKit, ShirtSize, GenderCategory } from '@/types/race'
 import { loadMercadoPago } from '@mercadopago/sdk-js'
@@ -43,6 +43,7 @@ type LoteStatus = {
 }
 
 type RaceKitWithStatus = RaceKit & {
+  shareSlug: string
   backendKitId: string
   backendLotLabel: string
   backendLotOrder: number
@@ -326,6 +327,36 @@ function RaceCard({
   })
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false)
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
+  const [shareCopied, setShareCopied] = useState(false)
+
+  const handleShare = async () => {
+    const url = `${window.location.origin}${window.location.pathname}#corrida-${kit.shareSlug}`
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: kit.raceName,
+          text: `Confira a corrida ${kit.raceName}`,
+          url,
+        })
+        return
+      }
+
+      await navigator.clipboard.writeText(url)
+      setShareCopied(true)
+      window.setTimeout(() => setShareCopied(false), 2500)
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return
+
+      try {
+        await navigator.clipboard.writeText(url)
+        setShareCopied(true)
+        window.setTimeout(() => setShareCopied(false), 2500)
+      } catch {
+        window.prompt('Copie o link da corrida:', url)
+      }
+    }
+  }
 
   useScrollLock(modal.isOpen)
 
@@ -517,7 +548,7 @@ function RaceCard({
 
   return (
     <>
-      <Card $featured={featured}>
+      <Card id={`corrida-${kit.shareSlug}`} $featured={featured}>
         {featured && (
           <FeaturedBadge>
             <Zap size={12} />
@@ -684,8 +715,16 @@ function RaceCard({
           </Message>
         )}
 
-        {documents.length > 0 && (
-          <DocumentButtonRow>
+        <DocumentButtonRow>
+          <ActionButton
+            type="button"
+            $variant="share"
+            onClick={handleShare}
+          >
+            {shareCopied ? <Check size={18} /> : <Share2 size={18} />}
+            {shareCopied ? 'Link copiado!' : 'Compartilhar'}
+          </ActionButton>
+          {documents.length > 0 && (
             <ActionButton
               type="button"
               $variant="docs"
@@ -697,8 +736,8 @@ function RaceCard({
               PDFs
               <ChevronDown size={16} />
             </ActionButton>
-          </DocumentButtonRow>
-        )}
+          )}
+        </DocumentButtonRow>
 
         {documents.length > 0 && (
           <DocumentsPanel $open={isDocumentsOpen}>
@@ -940,6 +979,7 @@ export default function RaceCards() {
 
         return [{
           ...kit,
+          shareSlug: kit.id,
           backendKitId: option.id,
           backendLotLabel: option.label,
           backendLotOrder: option.lot,
@@ -960,6 +1000,7 @@ export default function RaceCards() {
 
         return matchingStatuses.map(status => ({
         ...kit,
+        shareSlug: kit.id,
         id: status.id,
         distance: status.distance || kit.distance,
         backendKitId: status.id,
