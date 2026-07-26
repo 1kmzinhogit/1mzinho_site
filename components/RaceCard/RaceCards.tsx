@@ -334,11 +334,7 @@ function RaceCard({
 
     try {
       if (navigator.share) {
-        await navigator.share({
-          title: kit.raceName,
-          text: `Confira a corrida ${kit.raceName}`,
-          url,
-        })
+        await navigator.share({ url })
         return
       }
 
