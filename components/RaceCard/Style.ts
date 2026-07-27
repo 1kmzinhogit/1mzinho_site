@@ -138,7 +138,6 @@ export const LotInfo = styled.div`
   margin-bottom: 1.5rem;
   padding-bottom: 1.5rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  min-height: 5.8rem;
 `
 
 export const LotHeader = styled.div`

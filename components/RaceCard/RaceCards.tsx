@@ -8,11 +8,11 @@ import { loadMercadoPago } from '@mercadopago/sdk-js'
 
 import {
   Section, Container, SectionHeader, SectionTitle, SectionSubtitle, Grid, Card, FeaturedBadge,
-  Distance, RaceName, Description, LotInfo, LotHeader, LotBadge, Slots, Price, FormGroup, Label, Input,
+  Distance, RaceName, Description, LotInfo, LotBadge, Price, FormGroup, Label, Input,
   ButtonGroup, ActionButton, Message, ModalOverlay, ModalContent, ModalClose, ModalTitle,
   ModalSubtitle, PriceTag, SizeSelector, SizeButton, ShoeNumberInput, ConfirmButton,
   GenderSelector, GenderButton, ElderlyCheckbox, TeamNameInput, ColorSelector, ColorButton, ColorLabel,
-  ProgressBarContainer, ProgressBarFill, ProgressLabel, BannerCorrida, DocumentsPanel, DocumentLink, DocumentButtonRow,
+  BannerCorrida, DocumentsPanel, DocumentLink, DocumentButtonRow,
   KitOptionSelector, KitOptionButton, CheckoutLoadingOverlay, CheckoutLoadingCard,
 } from './Style'
 
@@ -274,9 +274,6 @@ function RaceCard({
   const sharedCapacity = kit.availableSlots
   const sharedSoldSlots = kitOptions.reduce((total, option) => total + option.vendidos, 0)
   const sharedAvailableSlots = Math.max(0, sharedCapacity - sharedSoldSlots)
-  const sharedPercentageSold = sharedCapacity > 0
-    ? Math.min(100, Math.round((sharedSoldSlots / sharedCapacity) * 100))
-    : 0
   const isEventAvailable = sharedAvailableSlots > 0
   const kitColors = selectedKit.kitColors?.length ? selectedKit.kitColors : defaultKitColors
   const initialKitColor = kitColors[0]?.color ?? '#d7ff32'
@@ -561,20 +558,7 @@ function RaceCard({
         <Description>{kit.description}</Description>
 
         <LotInfo>
-          <LotHeader>
-            <LotBadge>{selectedKit.backendLotLabel}</LotBadge>
-            <Slots>{sharedAvailableSlots} vagas disponíveis</Slots>
-          </LotHeader>
-          <ProgressBarContainer>
-            <ProgressBarFill
-              $percentage={sharedPercentageSold}
-              $critical={sharedPercentageSold >= 90}
-            />
-          </ProgressBarContainer>
-          <ProgressLabel>
-            <span>{sharedSoldSlots}/{sharedCapacity} vendidas</span>
-            <span>{sharedPercentageSold}% vendido</span>
-          </ProgressLabel>
+          <LotBadge>Lote {selectedKit.backendLotOrder}</LotBadge>
         </LotInfo>
 
         <Price>
