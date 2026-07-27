@@ -283,6 +283,8 @@ function RaceCard({
   const documents = kit.documents ?? []
   const isDocumentsOpen = openDocumentsKitId === kit.backendKitId
   const cardPrice = formatCurrency(getPrecoLote(selectedKit))
+  const selectedKitConfig = kit.kitOptions?.find(option => option.id === selectedKit.backendKitId)
+  const includesShirt = selectedKitConfig?.includesShirt !== false
   const availableCategories = useMemo<GenderCategory[]>(() => {
     const categoryLabels: Array<{ apiCategory: ApiCategoria; label: GenderCategory }> = [
       { apiCategory: 'MASCULINO', label: 'Masculino' },
@@ -496,14 +498,14 @@ function RaceCard({
       eventName: modal.kit?.raceName,
       distance: modal.kit?.distance,
       user: modal.userData,
-      shirtSize: modal.size,
+      shirtSize: includesShirt ? modal.size : undefined,
       gender: modal.gender,
       categoria: modal.gender,
       isElderly: modal.isElderly,
       shoeNumber: modal.shoeNumber,
       teamName: modal.teamName,
-      kitColor: modal.kitColor,
-      kitColorName: selectedKitColor?.name ?? '',
+      kitColor: includesShirt ? modal.kitColor : undefined,
+      kitColorName: includesShirt ? (selectedKitColor?.name ?? '') : undefined,
     }
 
     setCheckoutError(null)
@@ -766,7 +768,9 @@ function RaceCard({
           </ModalClose>
 
           <ModalTitle id={`checkout-title-${kit.id}`}>Finalizar Compra</ModalTitle>
-          <ModalSubtitle>Escolha a categoria, tamanho da camisa e numeração</ModalSubtitle>
+          <ModalSubtitle>
+            {includesShirt ? 'Escolha a categoria e o tamanho da camisa' : 'Escolha a categoria da inscrição'}
+          </ModalSubtitle>
 
           <PriceTag>
             <span>{modalPrice ?? 'Preço no checkout'}</span>
@@ -799,21 +803,23 @@ function RaceCard({
             </ElderlyCheckbox>
           )}
 
-          <FormGroup>
-            <Label>Tamanho da Camisa</Label>
-            <SizeSelector>
-              {(['PP', 'P', 'M', 'G', 'GG'] as ShirtSize[]).map(size => (
-                <SizeButton
-                  key={size}
-                  type="button"
-                  $selected={modal.size === size}
-                  onClick={() => setModal(prev => ({ ...prev, size }))}
-                >
-                  {size}
-                </SizeButton>
-              ))}
-            </SizeSelector>
-          </FormGroup>
+          {includesShirt && (
+            <FormGroup>
+              <Label>Tamanho da Camisa</Label>
+              <SizeSelector>
+                {(['PP', 'P', 'M', 'G', 'GG'] as ShirtSize[]).map(size => (
+                  <SizeButton
+                    key={size}
+                    type="button"
+                    $selected={modal.size === size}
+                    onClick={() => setModal(prev => ({ ...prev, size }))}
+                  >
+                    {size}
+                  </SizeButton>
+                ))}
+              </SizeSelector>
+            </FormGroup>
+          )}
 
           {/* <ShoeNumberInput>
             <Label>Numeração (opcional)</Label>
@@ -839,21 +845,23 @@ function RaceCard({
             />
           </TeamNameInput>
 
-          <FormGroup>
-            <ColorLabel>Cor do Kit</ColorLabel>
-            <ColorSelector>
-              {kitColors.map(({ color, name }) => (
-                <ColorButton
-                  key={color}
-                  type="button"
-                  $selected={modal.kitColor === color}
-                  $color={color}
-                  onClick={() => setModal(prev => ({ ...prev, kitColor: color }))}
-                  title={name}
-                />
-              ))}
-            </ColorSelector>
-          </FormGroup>
+          {includesShirt && (
+            <FormGroup>
+              <ColorLabel>Cor do Kit</ColorLabel>
+              <ColorSelector>
+                {kitColors.map(({ color, name }) => (
+                  <ColorButton
+                    key={color}
+                    type="button"
+                    $selected={modal.kitColor === color}
+                    $color={color}
+                    onClick={() => setModal(prev => ({ ...prev, kitColor: color }))}
+                    title={name}
+                  />
+                ))}
+              </ColorSelector>
+            </FormGroup>
+          )}
 
           {checkoutError && (
             <Message $type="error" role="alert">
@@ -1052,7 +1060,7 @@ export default function RaceCards() {
         <SectionHeader>
           <SectionTitle>Escolha sua <strong>Corrida</strong></SectionTitle>
           <SectionSubtitle>
-            Selecione a distância ideal para você e garanta seu kit com a camisa oficial do evento
+            Selecione a opção ideal para você e garanta sua inscrição no evento
           </SectionSubtitle>
         </SectionHeader>
         {statusError && (

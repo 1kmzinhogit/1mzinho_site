@@ -78,7 +78,13 @@ function normalizarCategoria(gender?: string, isElderly?: boolean): ApiCategoria
 }
 
 function buscarKitLocal(kitId?: string): RaceKit | undefined {
-  return raceKits.find(item => item.id === kitId)
+  return raceKits.find(item => (
+    item.id === kitId || item.kitOptions?.some(option => option.id === kitId)
+  ))
+}
+
+function kitIncluiCamisa(kit: RaceKit | undefined, kitId: string) {
+  return kit?.kitOptions?.find(option => option.id === kitId)?.includesShirt !== false
 }
 
 function buscarNomeCorCamisa(kit: RaceKit | undefined, dados: FrontendCheckoutPayload) {
@@ -111,6 +117,7 @@ function validarPayloadApi(payload: ApiCheckoutPayload) {
 function criarPayloadApi(dados: FrontendCheckoutPayload): ApiCheckoutPayload {
   const kitId = dados.kitId?.trim() ?? ''
   const kit = buscarKitLocal(kitId)
+  const includesShirt = kitIncluiCamisa(kit, kitId)
   const nomePessoa = dados.user?.name?.trim() ?? ''
 
   const payload: ApiCheckoutPayload = {
@@ -121,10 +128,12 @@ function criarPayloadApi(dados: FrontendCheckoutPayload): ApiCheckoutPayload {
     nomeNaCamisa: criarNomeNaCamisa(nomePessoa),
     dataNascimento: dados.user?.dataNascimento ?? '',
     nomePessoa,
-    corCamisa: buscarNomeCorCamisa(kit, dados),
+    corCamisa: includesShirt ? buscarNomeCorCamisa(kit, dados) : 'NAO SE APLICA',
     categoria: normalizarCategoria(dados.categoria ?? dados.gender, dados.isElderly),
     equipe: dados.team ?? dados.teamName ?? '',
-    numeroCamisa: dados.shirtNumber ?? dados.shirtSize ?? dados.shoeNumber ?? '',
+    numeroCamisa: includesShirt
+      ? (dados.shirtNumber ?? dados.shirtSize ?? dados.shoeNumber ?? '')
+      : '',
   }
 
   validarPayloadApi(payload)
