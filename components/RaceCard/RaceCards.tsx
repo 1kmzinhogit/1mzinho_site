@@ -558,7 +558,7 @@ function RaceCard({
         <Description>{kit.description}</Description>
 
         <LotInfo>
-          <LotBadge>Lote {selectedKit.backendLotOrder}</LotBadge>
+          <LotBadge>Lote: {String(kit.lot).padStart(2, '0')} disponível</LotBadge>
         </LotInfo>
 
         <Price>
