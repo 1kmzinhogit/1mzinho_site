@@ -34,6 +34,8 @@ export interface RaceKit {
   availableSlots: number
   soldSlots?: number // vagas já vendidas (para calcular % do lote)
   description: string
+  organizer?: string
+  organizerTeam?: string
   img?: string
   shareImg?: string
   shareVersion?: number

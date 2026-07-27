@@ -148,6 +148,7 @@ export const LotHeader = styled.div`
 `
 
 export const LotBadge = styled.span`
+  display: inline-block;
   background: rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.7);
   padding: 0.3rem 0.8rem;
@@ -155,6 +156,29 @@ export const LotBadge = styled.span`
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
+`
+
+export const OrganizerInfo = styled.div`
+  margin-top: 0.85rem;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.8rem;
+  line-height: 1.5;
+`
+
+export const OrganizerName = styled.div`
+  color: #fff;
+  font-weight: 600;
+`
+
+export const OrganizerTeam = styled.div`
+  margin-top: 0.15rem;
+
+  strong {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
 `
 
 export const Slots = styled.span`

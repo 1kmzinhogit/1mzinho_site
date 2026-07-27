@@ -9,6 +9,7 @@ import { loadMercadoPago } from '@mercadopago/sdk-js'
 import {
   Section, Container, SectionHeader, SectionTitle, SectionSubtitle, Grid, Card, FeaturedBadge,
   Distance, RaceName, Description, LotInfo, LotBadge, Price, FormGroup, Label, Input,
+  OrganizerInfo, OrganizerName, OrganizerTeam,
   ButtonGroup, ActionButton, Message, ModalOverlay, ModalContent, ModalClose, ModalTitle,
   ModalSubtitle, PriceTag, SizeSelector, SizeButton, ShoeNumberInput, ConfirmButton,
   GenderSelector, GenderButton, ElderlyCheckbox, TeamNameInput, ColorSelector, ColorButton, ColorLabel,
@@ -559,6 +560,14 @@ function RaceCard({
 
         <LotInfo>
           <LotBadge>Lote: {String(kit.lot).padStart(2, '0')} disponível</LotBadge>
+          {kit.organizer && (
+            <OrganizerInfo>
+              <OrganizerName>Organizador: {kit.organizer}</OrganizerName>
+              {kit.organizerTeam && (
+                <OrganizerTeam><strong>Equipe:</strong> {kit.organizerTeam}</OrganizerTeam>
+              )}
+            </OrganizerInfo>
+          )}
         </LotInfo>
 
         <Price>

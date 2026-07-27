@@ -43,6 +43,8 @@ export const raceKits: RaceKit[] = [
     availableSlots: 300,
     soldSlots: 0,
     description: '27/09/2026 às 6:00 • Percurso de 5 km • Corrida de Rua • Corrida + Taxa do site 5R$',
+    organizer: 'Clemer Augusto Trindade Jardim',
+    organizerTeam: 'Superação Assessoria Esportiva',
     img: "/superacao.png",
     shareImg: "/superacao-og.jpg",
     shareVersion: 2,
