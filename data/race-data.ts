@@ -131,22 +131,22 @@ export const sponsors: Sponsor[] = [
 ]
 
 export const eventInfo = {
-  name: 'Juntos Rumo ao Céu',
-  tagline: 'Corrida de Rua',
-  date: '27 de setembro de 2026',
-  time: '06:00',
+  name: '',
+  tagline: '',
+  date: '',
+  time: '',
   location: {
-    name: 'Proximo ao IML - Mangueirão',
-    address: 'Alameda Pedroso, 46 B - mangueirão - Ref.  IML  - Entre Av. mangueirão/Av. centenário',
-    city: 'Belém - PA',
+    name: '',
+    address: '',
+    city: '',
     coordinates: { lat: -23.5874, lng: -46.6576 }
   },
   kitPickup: {
-    name: 'Juntos Rumo ao Céu',
-    address: 'A definir',
-    city: 'Belém - PA',
-    dates: 'A definir',
-    time: 'A definir'
+    name: '',
+    address: '',
+    city: '',
+    dates: '',
+    time: ''
   },
   contact: {
     email: '1kmzinhocorrida@gmail.com',
