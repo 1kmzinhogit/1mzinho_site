@@ -479,6 +479,7 @@ function getRefundRequestStatus(data: RefundRequestResponse) {
 
 export default function MinhasComprasPage() {
   const [cpf, setCpf] = useState('')
+  const [email, setEmail] = useState('')
   const [orders, setOrders] = useState<ApiOrder[]>([])
   const [refundDrafts, setRefundDrafts] = useState<Record<string, RefundDraft>>({})
   const [loading, setLoading] = useState(false)
@@ -494,6 +495,7 @@ export default function MinhasComprasPage() {
     setHasSearched(false)
 
     const normalizedCpf = normalizeCPF(cpf)
+    const normalizedEmail = email.trim()
 
     if (normalizedCpf.length !== 11) {
       setMessageTone('error')
@@ -501,10 +503,22 @@ export default function MinhasComprasPage() {
       return
     }
 
+    if (!isValidEmail(normalizedEmail)) {
+      setMessageTone('error')
+      setMessage('Informe o mesmo e-mail utilizado na compra.')
+      return
+    }
+
     try {
       setLoading(true)
+      setEmail(normalizedEmail)
 
-      const res = await fetch(`${API_BASE_URL}/pedidos/consulta?cpf=${encodeURIComponent(normalizedCpf)}`)
+      const params = new URLSearchParams({
+        cpf: normalizedCpf,
+        email: normalizedEmail,
+      })
+
+      const res = await fetch(`${API_BASE_URL}/pedidos/consulta?${params.toString()}`)
 
       if (res.status === 404) {
         setHasSearched(true)
@@ -539,7 +553,7 @@ export default function MinhasComprasPage() {
     } catch (err) {
       console.error(err)
       setMessageTone('error')
-      setMessage('Erro ao consultar o CPF. Verifique sua conexão e tente novamente.')
+      setMessage('Erro ao consultar os dados. Verifique sua conexão e tente novamente.')
     } finally {
       setLoading(false)
     }
@@ -656,8 +670,8 @@ export default function MinhasComprasPage() {
 
         <Title>Minha compra</Title>
         <Subtitle>
-          Informe o CPF utilizado na compra para localizar seus pedidos e consultar os dados
-          da inscrição.
+          Informe o CPF e o mesmo e-mail utilizados na compra para localizar seus pedidos e
+          consultar os dados da inscrição.
         </Subtitle>
 
         <Form onSubmit={handleSubmit}>
@@ -672,13 +686,27 @@ export default function MinhasComprasPage() {
             />
           </Label>
 
+          <Label>
+            E-mail utilizado na compra
+            <Input
+              type="email"
+              placeholder="voce@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onBlur={() => setEmail(currentEmail => currentEmail.trim())}
+              autoComplete="email"
+              required
+            />
+          </Label>
+
           <Button type="submit" disabled={loading}>
             {loading ? 'Buscando compra...' : 'Buscar compra'}
           </Button>
         </Form>
 
         <Helper>
-          O CPF pode ser digitado com ou sem pontos e traço.
+          O CPF pode ser digitado com ou sem pontos e traço. Use o mesmo e-mail informado no
+          checkout.
         </Helper>
 
         {message && (
@@ -689,8 +717,8 @@ export default function MinhasComprasPage() {
 
         {hasSearched && orders.length === 0 && !message && (
           <Helper $tone="info" style={{ marginTop: '1rem' }}>
-            Nenhuma compra foi localizada para esse CPF. Confira os números digitados ou fale
-            com a organização.
+            Nenhuma compra foi localizada para esse CPF e e-mail. Confira os dados digitados ou
+            fale com a organização.
           </Helper>
         )}
 

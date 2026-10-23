@@ -297,6 +297,13 @@ export const Input = styled.input`
   }
 `
 
+export const FormHint = styled.p`
+  margin: 0.5rem 0 0;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 0.78rem;
+  line-height: 1.45;
+`
+
 export const ButtonGroup = styled.div`
   display: flex;
   gap: 0.75rem;

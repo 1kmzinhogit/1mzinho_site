@@ -9,6 +9,7 @@ import { loadMercadoPago } from '@mercadopago/sdk-js'
 import {
   Section, Container, SectionHeader, SectionTitle, SectionSubtitle, Grid, Card, FeaturedBadge,
   Distance, RaceName, Description, LotInfo, LotBadge, Price, FormGroup, Label, Input,
+  FormHint,
   OrganizerInfo, OrganizerName, OrganizerTeam,
   ButtonGroup, ActionButton, Message, ModalOverlay, ModalContent, ModalClose, ModalTitle,
   ModalSubtitle, PriceTag, SizeSelector, SizeButton, ShoeNumberInput, ConfirmButton,
@@ -235,6 +236,7 @@ function useScrollLock(isLocked: boolean) {
 interface CardState {
   name: string
   email: string
+  confirmEmail: string
   cpf: string
   phone: string
   birthDateInput: string
@@ -306,6 +308,7 @@ function RaceCard({
   const [state, setState] = useState<CardState>({
     name: '',
     email: '',
+    confirmEmail: '',
     cpf: '',
     phone: '',
     birthDateInput: '',
@@ -410,11 +413,15 @@ function RaceCard({
 
   // ── Validation ───────────────────────────────────────────────────────────────
 
-  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.email.trim())
+  const normalizedEmail = state.email.trim()
+  const normalizedConfirmEmail = state.confirmEmail.trim()
+  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)
+  const doEmailsMatch = normalizedEmail === normalizedConfirmEmail
 
   const isFormValid =
     Boolean(state.name.trim()) &&
     isEmailValid &&
+    doEmailsMatch &&
     Boolean(state.dataNascimento) &&
     state.cpf.replace(/\D/g, '').length === 11 &&
     state.phone.replace(/\D/g, '').length >= 10
@@ -424,9 +431,11 @@ function RaceCard({
       ...prev,
       message: {
         type: 'error',
-        text: state.email.trim() && !isEmailValid
+        text: normalizedEmail && !isEmailValid
           ? 'Informe um e-mail válido para receber o comprovante eletrônico'
-          : 'Preencha todos os campos obrigatórios corretamente',
+          : normalizedConfirmEmail && !doEmailsMatch
+            ? 'Os e-mails informados não coincidem.'
+            : 'Preencha todos os campos obrigatórios corretamente',
       },
     }))
 
@@ -440,7 +449,7 @@ function RaceCard({
       message: { type: 'success', text: 'Inscrição realizada com sucesso! Aguarde confirmação por e-mail.' },
     }))
     window.setTimeout(() => {
-      setState({ name: '', email: '', cpf: '', phone: '', birthDateInput: '', message: null, subscribeSuccess: false, dataNascimento: '' })
+      setState({ name: '', email: '', confirmEmail: '', cpf: '', phone: '', birthDateInput: '', message: null, subscribeSuccess: false, dataNascimento: '' })
     }, 3000)
   }
 
@@ -457,6 +466,12 @@ function RaceCard({
       return
     }
 
+    setState(prev => ({
+      ...prev,
+      email: prev.email.trim(),
+      confirmEmail: prev.confirmEmail.trim(),
+    }))
+
     setModal({
       isOpen: true,
       size: 'M',
@@ -468,7 +483,7 @@ function RaceCard({
       kit: selectedKit,
       userData: {
         name: state.name,
-        email: state.email,
+        email: normalizedEmail,
         cpf: state.cpf,
         phone: state.phone,
         dataNascimento: state.dataNascimento,
@@ -619,9 +634,29 @@ function RaceCard({
             placeholder="seu@email.com"
             value={state.email}
             onChange={e => setState(prev => ({ ...prev, email: e.target.value }))}
+            onBlur={() => setState(prev => ({ ...prev, email: prev.email.trim() }))}
             autoComplete="email"
             required
             aria-required="true"
+            aria-describedby={`email-hint-${kit.id}`}
+          />
+          <FormHint id={`email-hint-${kit.id}`}>
+            Use um e-mail que você acessa normalmente. Ele será necessário para consultar sua inscrição, receber o comprovante e solicitar reembolso, se necessário.
+          </FormHint>
+        </FormGroup>
+
+        <FormGroup>
+          <Label>Confirmar e-mail *</Label>
+          <Input
+            type="email"
+            placeholder="Digite o e-mail novamente"
+            value={state.confirmEmail}
+            onChange={e => setState(prev => ({ ...prev, confirmEmail: e.target.value }))}
+            onBlur={() => setState(prev => ({ ...prev, confirmEmail: prev.confirmEmail.trim() }))}
+            autoComplete="email"
+            required
+            aria-required="true"
+            aria-invalid={Boolean(normalizedConfirmEmail && !doEmailsMatch)}
           />
         </FormGroup>
         <FormGroup>
