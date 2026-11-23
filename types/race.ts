@@ -1,6 +1,6 @@
 export type ShirtSize = 'PP' | 'P' | 'M' | 'G' | 'GG'
 export type GenderCategory = 'Masculino' | 'Feminino' | 'LGBTQIA+' | '60+' | 'PCD'
-export type RaceDistance = '1km' | '3km' | '5km' | '10km' | '21km'
+export type RaceDistance = 'virtual' | '1km' | '3km' | '5km' | '10km' | '21km'
 export type Modalidade = 'Masculino' | 'Feminino' | 'Mista' | '60+' | 'PCD' | 'LGBTQIA+' 
 
 export interface KitColor {
@@ -37,11 +37,15 @@ export interface RaceKit {
   organizer?: string
   organizerTeam?: string
   img?: string
+  gallery?: string[]
+  containGalleryImages?: string[]
   shareImg?: string
   shareVersion?: number
   kitColors?: KitColor[]
   kitOptions?: KitOption[]
   documents?: RaceDocument[]
+  /** Desativa escolha de camisa para desafios virtuais sem kit de vestuário. */
+  includesShirt?: boolean
   // dataNascimento: string
 }
 

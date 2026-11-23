@@ -126,6 +126,69 @@ export const BannerCorrida = styled.img`
   }
 `
 
+export const BannerCarousel = styled.div`
+  position: relative;
+  width: 100%;
+  height: 180px;
+  margin-bottom: 1rem;
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.06);
+
+  @media (max-width: 420px) {
+    height: 160px;
+  }
+`
+
+export const BannerCarouselImage = styled.img<{ $contain?: boolean }>`
+  width: 100%;
+  height: 100%;
+  object-fit: ${({ $contain }) => $contain ? 'contain' : 'cover'};
+  object-position: center;
+  display: block;
+`
+
+export const BannerCarouselButton = styled.button<{ $side: 'left' | 'right' }>`
+  position: absolute;
+  top: 50%;
+  ${({ $side }) => $side}: 0.5rem;
+  transform: translateY(-50%);
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: white;
+  background: rgba(8, 22, 56, 0.78);
+  cursor: pointer;
+  z-index: 1;
+
+  &:hover { background: rgba(8, 22, 56, 0.96); }
+`
+
+export const BannerCarouselDots = styled.div`
+  position: absolute;
+  left: 50%;
+  bottom: 0.5rem;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.25rem 0.45rem;
+  border-radius: 99px;
+  background: rgba(8, 22, 56, 0.65);
+`
+
+export const BannerCarouselDot = styled.button<{ $active: boolean }>`
+  width: 0.45rem;
+  height: 0.45rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: ${({ $active }) => $active ? '#d7ff32' : 'rgba(255, 255, 255, 0.55)'};
+  cursor: pointer;
+`
+
 export const Description = styled.p`
   color: rgba(255, 255, 255, 0.75);
   font-size: 0.9rem;

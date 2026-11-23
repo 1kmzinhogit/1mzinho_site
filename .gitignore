@@ -21,3 +21,6 @@ build/
 coverage/
 *.tsbuildinfo
 .env
+
+# Arquivos locais de apoio ao Hermes; não publicar no GitHub
+/docs/

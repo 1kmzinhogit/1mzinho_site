@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Check, AlertCircle, Zap, UserPlus, CreditCard, X, Calendar, FileText, ChevronDown, ExternalLink, Loader2, Share2 } from 'lucide-react'
+import { Check, AlertCircle, Zap, UserPlus, CreditCard, X, Calendar, FileText, ChevronDown, ExternalLink, Loader2, Share2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { raceKits } from '@/data/race-data'
 import type { RaceKit, ShirtSize, GenderCategory } from '@/types/race'
 import { loadMercadoPago } from '@mercadopago/sdk-js'
@@ -14,7 +14,7 @@ import {
   ButtonGroup, ActionButton, Message, ModalOverlay, ModalContent, ModalClose, ModalTitle,
   ModalSubtitle, PriceTag, SizeSelector, SizeButton, ShoeNumberInput, ConfirmButton,
   GenderSelector, GenderButton, ElderlyCheckbox, TeamNameInput, ColorSelector, ColorButton, ColorLabel,
-  BannerCorrida, DocumentsPanel, DocumentLink, DocumentButtonRow,
+  BannerCorrida, BannerCarousel, BannerCarouselImage, BannerCarouselButton, BannerCarouselDots, BannerCarouselDot, DocumentsPanel, DocumentLink, DocumentButtonRow,
   KitOptionSelector, KitOptionButton, CheckoutLoadingOverlay, CheckoutLoadingCard,
 } from './Style'
 
@@ -273,6 +273,15 @@ function RaceCard({
   onToggleDocuments: (kitId: string) => void
 }) {
   const [selectedKitId, setSelectedKitId] = useState(kitOptions[0]?.backendKitId ?? kit.backendKitId)
+  const [bannerIndex, setBannerIndex] = useState(0)
+
+  useEffect(() => {
+    if (!kit.gallery || kit.gallery.length < 2) return
+    const interval = window.setInterval(() => {
+      setBannerIndex(index => (index + 1) % kit.gallery!.length)
+    }, 4500)
+    return () => window.clearInterval(interval)
+  }, [kit.gallery])
   const selectedKit = kitOptions.find(option => option.backendKitId === selectedKitId) ?? kitOptions[0] ?? kit
   const sharedCapacity = kit.availableSlots
   const sharedSoldSlots = kitOptions.reduce((total, option) => total + option.vendidos, 0)
@@ -284,7 +293,7 @@ function RaceCard({
   const isDocumentsOpen = openDocumentsKitId === kit.backendKitId
   const cardPrice = formatCurrency(getPrecoLote(selectedKit))
   const selectedKitConfig = kit.kitOptions?.find(option => option.id === selectedKit.backendKitId)
-  const includesShirt = selectedKitConfig?.includesShirt !== false
+  const includesShirt = selectedKitConfig?.includesShirt ?? kit.includesShirt ?? true
   const availableCategories = useMemo<GenderCategory[]>(() => {
     const categoryLabels: Array<{ apiCategory: ApiCategoria; label: GenderCategory }> = [
       { apiCategory: 'MASCULINO', label: 'Masculino' },
@@ -569,7 +578,38 @@ function RaceCard({
         )}
 
         <Distance>{kit.distance}</Distance>
-        {kit.img && <BannerCorrida src={kit.img} alt={kit.raceName} />}
+        {kit.gallery && kit.gallery.length > 1 ? (
+          <BannerCarousel aria-label={`Imagens de ${kit.raceName}`}>
+            <BannerCarouselImage
+              src={kit.gallery[bannerIndex % kit.gallery.length]}
+              alt={`${kit.raceName} — imagem ${bannerIndex + 1} de ${kit.gallery.length}`}
+              $contain={kit.containGalleryImages?.includes(kit.gallery[bannerIndex % kit.gallery.length])}
+            />
+            <BannerCarouselButton
+              type="button"
+              $side="left"
+              aria-label="Imagem anterior"
+              onClick={() => setBannerIndex(index => (index - 1 + kit.gallery!.length) % kit.gallery!.length)}
+            ><ChevronLeft size={20} /></BannerCarouselButton>
+            <BannerCarouselButton
+              type="button"
+              $side="right"
+              aria-label="Próxima imagem"
+              onClick={() => setBannerIndex(index => (index + 1) % kit.gallery!.length)}
+            ><ChevronRight size={20} /></BannerCarouselButton>
+            <BannerCarouselDots>
+              {kit.gallery.map((_, index) => (
+                <BannerCarouselDot
+                  key={index}
+                  type="button"
+                  $active={index === bannerIndex % kit.gallery!.length}
+                  aria-label={`Mostrar imagem ${index + 1}`}
+                  onClick={() => setBannerIndex(index)}
+                />
+              ))}
+            </BannerCarouselDots>
+          </BannerCarousel>
+        ) : kit.img && <BannerCorrida src={kit.img} alt={kit.raceName} />}
         <RaceName>{kit.raceName}</RaceName>
         <Description>{kit.description}</Description>
 
