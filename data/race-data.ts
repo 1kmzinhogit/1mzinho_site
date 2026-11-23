@@ -11,6 +11,13 @@ export const raceKits: RaceKit[] = [
     availableSlots: 100,
     soldSlots: 0,
     description: '📋 Visão Geral\n\n· 12 meses | 12 desafios | 12 conquistas — organização: Grupo Silvetes\n· Período: todo o ano de 2027\n· Aberto a integrantes do grupo e participantes externos, de qualquer cidade/estado\n· Caráter participativo e motivacional (não é competição entre pessoas)',
+    locationInfo: [{
+      label: 'Primeira entrega de medalhas',
+      name: 'Rua da Marinha, em frente à RoboZão Suplementos',
+      city: 'Local e orientações serão confirmados pela organização.',
+      date: '31/01/2027',
+      time: '06h',
+    }],
     organizer: 'Grupo Silvetes',
     img: '/banner-silvetes-2027-1200x675.webp',
     gallery: [
@@ -47,22 +54,6 @@ export const sponsors: Sponsor[] = [
 
 export const eventInfo = {
   name: '',
-  tagline: '',
-  date: '',
-  time: '',
-  location: {
-    name: '',
-    address: '',
-    city: '',
-    coordinates: { lat: -23.5874, lng: -46.6576 }
-  },
-  kitPickup: {
-    name: '',
-    address: '',
-    city: '',
-    dates: '',
-    time: ''
-  },
   contact: {
     email: '1kmzinhocorrida@gmail.com',
     phone: '(91) 996256899',

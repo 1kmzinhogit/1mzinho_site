@@ -24,6 +24,15 @@ export interface RaceDocument {
   href: string
 }
 
+export interface RaceLocationInfo {
+  label: string
+  name: string
+  address?: string
+  city?: string
+  date?: string
+  time?: string
+}
+
 export interface RaceKit {
   id: string
   raceName: string
@@ -34,6 +43,7 @@ export interface RaceKit {
   availableSlots: number
   soldSlots?: number // vagas já vendidas (para calcular % do lote)
   description: string
+  locationInfo?: RaceLocationInfo[]
   organizer?: string
   organizerTeam?: string
   img?: string

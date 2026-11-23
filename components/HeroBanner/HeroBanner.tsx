@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { Calendar, MapPin, ChevronDown } from 'lucide-react'
-import { eventInfo } from '@/data/race-data'
+import { raceKits } from '@/data/race-data'
 import {
   HeroWrapper, RunnerSilhouette, Content, Badge, Subtitle,
   InfoGrid, InfoItem, CTAButton, ScrollIndicator,
@@ -18,6 +18,7 @@ const banners = [
 
 export default function HeroBanner() {
   const [currentBanner, setCurrentBanner] = useState(0)
+  const evento = raceKits[0]
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -44,17 +45,17 @@ export default function HeroBanner() {
 
       <RunnerSilhouette />
       <Content>
-        <Badge>Corrida de Rua 2026</Badge>
-        <Subtitle>{eventInfo.tagline}</Subtitle>
+        <Badge>{evento?.raceName ?? 'Corridas e desafios'}</Badge>
+        <Subtitle>{evento?.organizer ?? 'Escolha uma corrida e venha participar'}</Subtitle>
 
         <InfoGrid>
           <InfoItem>
             <Calendar size={20} />
-            <span>{eventInfo.date}</span>
+            <span>{evento?.distance === 'virtual' ? 'Desafio virtual' : evento?.locationInfo?.[0]?.date ?? 'Confira os eventos'}</span>
           </InfoItem>
           <InfoItem>
             <MapPin size={20} />
-            <span>{eventInfo.location.name}</span>
+            <span>{evento?.locationInfo?.[0]?.name ?? 'Vários locais'}</span>
           </InfoItem>
         </InfoGrid>
 
