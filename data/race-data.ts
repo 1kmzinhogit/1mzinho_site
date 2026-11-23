@@ -14,7 +14,6 @@ export const raceKits: RaceKit[] = [
     locationInfo: [{
       label: 'Primeira entrega de medalhas',
       name: 'Rua da Marinha, em frente à RoboZão Suplementos',
-      city: 'Local e orientações serão confirmados pela organização.',
       date: '31/01/2027',
       time: '06h',
     }],

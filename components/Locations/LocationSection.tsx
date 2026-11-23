@@ -1,10 +1,10 @@
 'use client'
 
-import { MapPin, Calendar, Clock } from 'lucide-react'
+import { MapPin, Calendar, Clock, FileText, ExternalLink } from 'lucide-react'
 import { raceKits } from '@/data/race-data'
 import { 
   Section, Container, SectionHeader, SectionTitle, SectionSubtitle, Grid, Card, CardIcon,
-  CardTitle, InfoList, InfoItem, InfoContent, MapButton
+  CardTitle, InfoList, InfoItem, InfoContent
 } from'./Style'
 
 export default function LocationSection() {
@@ -39,6 +39,17 @@ export default function LocationSection() {
                   {local.date && <InfoItem><Calendar size={18} /><InfoContent><h4>Data</h4><p>{local.date}</p></InfoContent></InfoItem>}
                   {local.time && <InfoItem><Clock size={18} /><InfoContent><h4>Horário</h4><p>{local.time}</p></InfoContent></InfoItem>}
                 </InfoList>
+                {evento.documents?.filter(document => /regulamento/i.test(document.label)).map(document => (
+                  <a
+                    key={document.href}
+                    href={document.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginTop: '1rem', color: '#d7ff32', textDecoration: 'none' }}
+                  >
+                    <FileText size={16} />Consultar regulamento<ExternalLink size={15} />
+                  </a>
+                ))}
               </Card>
             )))}
           </Grid>
