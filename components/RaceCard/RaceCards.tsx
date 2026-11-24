@@ -964,14 +964,12 @@ function RaceCard({
             </select>
             {modal.distanceChoice === 'outro' && (
               <>
-                <Label htmlFor={`custom-distance-${kit.id}`}>Distância em quilômetros</Label>
+                <Label htmlFor={`custom-distance-${kit.id}`}>Distância personalizada (km)</Label>
                 <Input
                   id={`custom-distance-${kit.id}`}
-                  type="number"
-                  min="0.1"
-                  step="any"
+                  type="text"
                   inputMode="decimal"
-                  placeholder="Ex.: 37"
+                  placeholder="Ex.: 5"
                   value={modal.customDistance}
                   onChange={event => setModal(prev => ({ ...prev, customDistance: event.target.value }))}
                 />
