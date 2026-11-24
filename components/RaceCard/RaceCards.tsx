@@ -965,14 +965,33 @@ function RaceCard({
             {modal.distanceChoice === 'outro' && (
               <>
                 <Label htmlFor={`custom-distance-${kit.id}`}>Distância personalizada (km)</Label>
-                <Input
-                  id={`custom-distance-${kit.id}`}
-                  type="text"
-                  inputMode="decimal"
-                  placeholder="Ex.: 5"
-                  value={modal.customDistance}
-                  onChange={event => setModal(prev => ({ ...prev, customDistance: event.target.value }))}
-                />
+                <div style={{ position: 'relative' }}>
+                  <Input
+                    id={`custom-distance-${kit.id}`}
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="Ex.: 5"
+                    value={modal.customDistance}
+                    onChange={event => setModal(prev => ({ ...prev, customDistance: event.target.value }))}
+                    style={{ paddingRight: '3.5rem' }}
+                  />
+                  {modal.customDistance && (
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        position: 'absolute',
+                        right: '1rem',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: 'rgba(255,255,255,0.7)',
+                        fontWeight: 600,
+                        pointerEvents: 'none',
+                      }}
+                    >
+                      km
+                    </span>
+                  )}
+                </div>
               </>
             )}
           </FormGroup>
