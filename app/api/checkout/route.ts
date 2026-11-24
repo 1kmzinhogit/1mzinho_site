@@ -201,11 +201,17 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           erro: apiMessage,
+          codigo: (result as (typeof result & { codigo?: string }) | null)?.codigo,
           detail: `API /checkout retornou status ${response.status}.`,
           backendStatus: response.status,
           backendResponse: result ?? text,
         },
-        { status: response.status },
+        {
+          status: response.status,
+          headers: response.headers.has('Retry-After')
+            ? { 'Retry-After': response.headers.get('Retry-After')! }
+            : undefined,
+        },
       )
     }
 

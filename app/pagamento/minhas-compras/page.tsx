@@ -6,6 +6,7 @@ import type { FormEvent } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Download } from 'lucide-react'
 import { breakpoints } from '@/lib/breakpoints'
+import { raceKits } from '@/data/race-data'
 
 type ApiOrder = {
   id?: string | number
@@ -63,6 +64,9 @@ type RefundRequestResponse = {
 }
 
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api-1kmzinho.onrender.com').replace(/\/$/, '')
+const virtualRaceNames = new Set(
+  raceKits.filter(race => race.distance === 'virtual').map(race => race.raceName.trim().toLocaleLowerCase('pt-BR')),
+)
 
 const PageWrapper = styled.div`
   min-height: 100vh;
@@ -806,6 +810,7 @@ export default function MinhasComprasPage() {
             {orders.map((order, index) => {
               const eventName = order.nomeEvento ?? order.evento ?? order.eventName ?? 'Não informado'
               const lotName = order.nomeLote ?? order.lote ?? order.lotName ?? 'Não informado'
+              const isVirtualRace = virtualRaceNames.has(eventName.trim().toLocaleLowerCase('pt-BR'))
               const orderCode = order.codigoPedido ?? order.codigo ?? order.code ?? 'Não informado'
               const orderId = getOrderKey(order, index)
               const refundDeadlineText = formatDate(order.dataLimiteReembolso)
@@ -831,6 +836,12 @@ export default function MinhasComprasPage() {
                       <span>Evento</span>
                       <strong>{eventName}</strong>
                     </OrderItem>
+                    {isVirtualRace && (
+                      <OrderItem>
+                        <span>Modalidade</span>
+                        <strong>Corrida virtual (sem kit)</strong>
+                      </OrderItem>
+                    )}
                     <OrderItem>
                       <span>Lote</span>
                       <strong>{lotName}</strong>

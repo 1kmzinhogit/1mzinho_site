@@ -661,9 +661,22 @@ function RaceCard({
         valorIngresso?: number
         taxaServico?: number
         total?: number
+        codigo?: string
       }
 
       if (!response.ok) {
+        if (response.status === 503 && result.codigo === 'FILA_CHECKOUT_CHEIA') {
+          const retryAfter = response.headers.get('Retry-After')
+          const retrySeconds = retryAfter
+            ? (/^\d+$/.test(retryAfter)
+                ? Number(retryAfter)
+                : Math.max(0, Math.ceil((Date.parse(retryAfter) - Date.now()) / 1000)))
+            : 0
+          const delayMs = Math.max(5, retrySeconds) * 1000
+          setCheckoutError('A fila de checkout está ocupada. Aguarde para tentar novamente.')
+          window.setTimeout(() => setIsCheckoutLoading(false), delayMs)
+          return
+        }
         throw new Error(result.erro ?? result.message ?? 'Não foi possível preparar o pagamento.')
       }
 
@@ -1172,8 +1185,7 @@ function RaceCard({
         <CheckoutLoadingOverlay>
           <CheckoutLoadingCard role="status" aria-live="polite" aria-busy="true">
             <Loader2 size={42} aria-hidden="true" />
-            <strong>Estamos preparando seu pagamento seguro…</strong>
-            <p>Não feche esta página. Você será direcionado ao Mercado Pago.</p>
+            <strong>Aguarde, estamos processando seu pedido. Não feche esta página.</strong>
           </CheckoutLoadingCard>
         </CheckoutLoadingOverlay>
       )}
