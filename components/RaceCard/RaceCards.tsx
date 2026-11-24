@@ -364,11 +364,20 @@ function RaceCard({
   })
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false)
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
+  const [retryCountdown, setRetryCountdown] = useState(0)
   const [cupomInput, setCupomInput] = useState('')
   const [cupomQuote, setCupomQuote] = useState<CupomQuote | null>(null)
   const [cupomLoading, setCupomLoading] = useState(false)
   const [cupomError, setCupomError] = useState<string | null>(null)
   const [shareCopied, setShareCopied] = useState(false)
+
+  useEffect(() => {
+    if (retryCountdown <= 0) return
+    const timer = window.setInterval(() => {
+      setRetryCountdown(current => Math.max(0, current - 1))
+    }, 1000)
+    return () => window.clearInterval(timer)
+  }, [retryCountdown > 0])
 
   const handleShare = async () => {
     const version = kit.shareVersion ? `?v=${kit.shareVersion}` : ''
@@ -665,16 +674,26 @@ function RaceCard({
       }
 
       if (!response.ok) {
-        if (response.status === 503 && result.codigo === 'FILA_CHECKOUT_CHEIA') {
+        if (
+          response.status === 503 &&
+          (result.codigo === 'FILA_CHECKOUT_CHEIA' || result.codigo === 'PAGAMENTO_TEMPORARIAMENTE_INDISPONIVEL')
+        ) {
           const retryAfter = response.headers.get('Retry-After')
           const retrySeconds = retryAfter
             ? (/^\d+$/.test(retryAfter)
                 ? Number(retryAfter)
                 : Math.max(0, Math.ceil((Date.parse(retryAfter) - Date.now()) / 1000)))
-            : 0
-          const delayMs = Math.max(5, retrySeconds) * 1000
-          setCheckoutError('A fila de checkout está ocupada. Aguarde para tentar novamente.')
-          window.setTimeout(() => setIsCheckoutLoading(false), delayMs)
+            : result.codigo === 'PAGAMENTO_TEMPORARIAMENTE_INDISPONIVEL' ? 120 : 5
+          const delaySeconds = result.codigo === 'FILA_CHECKOUT_CHEIA'
+            ? Math.max(5, retrySeconds)
+            : Math.max(0, retrySeconds)
+          setCheckoutError(result.erro ?? result.message ?? (
+            result.codigo === 'FILA_CHECKOUT_CHEIA'
+              ? 'A fila de checkout está ocupada. Aguarde para tentar novamente.'
+              : 'Compra não realizada. Tente novamente em alguns minutos.'
+          ))
+          setRetryCountdown(delaySeconds)
+          setIsCheckoutLoading(false)
           return
         }
         throw new Error(result.erro ?? result.message ?? 'Não foi possível preparar o pagamento.')
@@ -1178,9 +1197,12 @@ function RaceCard({
             Se a página apresentar instabilidade, aguarde alguns instantes e tente novamente em alguns minutos.
           </FormHint>
 
-          <ConfirmButton type="button" onClick={handleConfirmPurchase} disabled={!isEventAvailable || isCheckoutLoading}>
-            <CreditCard size={18} />
-            Ir para Pagamento
+          <ConfirmButton type="button" onClick={handleConfirmPurchase} disabled={!isEventAvailable || isCheckoutLoading || retryCountdown > 0}>
+            {retryCountdown > 0 ? (
+              `Tente novamente em ${Math.floor(retryCountdown / 60)}:${String(retryCountdown % 60).padStart(2, '0')}`
+            ) : (
+              <><CreditCard size={18} />Ir para Pagamento</>
+            )}
           </ConfirmButton>
         </ModalContent>
       </ModalOverlay>
