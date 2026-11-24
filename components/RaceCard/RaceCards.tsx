@@ -255,6 +255,8 @@ interface CardState {
 
 interface ModalState {
   isOpen: boolean
+  distanceChoice: string
+  customDistance: string
   size: ShirtSize
   gender: GenderCategory
   isElderly: boolean
@@ -504,6 +506,8 @@ function RaceCard({
     setCupomError(null)
     setModal({
       isOpen: true,
+      distanceChoice: '',
+      customDistance: '',
       size: 'M',
       gender: 'Masculino',
       isElderly: false,
@@ -577,6 +581,16 @@ function RaceCard({
   const handleConfirmPurchase = async () => {
     if (isCheckoutLoading) return
 
+    if (!modal.distanceChoice) {
+      setCheckoutError('Escolha a distância que você quer correr.')
+      return
+    }
+
+    if (modal.distanceChoice === 'outro' && !/^\d+(?:[.,]\d+)?$/.test(modal.customDistance.trim())) {
+      setCheckoutError('Informe a distância em quilômetros usando apenas um número.')
+      return
+    }
+
     if (cupomInput.trim() && !cupomQuote) {
       setCupomError('Aplique novamente o cupom antes de continuar. O código ainda não foi validado para esta categoria.')
       return
@@ -588,8 +602,12 @@ function RaceCard({
     }
 
     const selectedKitColor = kitColors.find(({ color }) => color === modal.kitColor)
+    const isCustomDistance = modal.distanceChoice === 'outro'
     const paymentData = {
-      kitId: modal.kit?.backendKitId,
+      kitId: isCustomDistance
+        ? modal.kit?.backendKitId
+        : `${modal.kit?.id ?? 'desafio-silvetes-2027'}-${modal.distanceChoice}-km`,
+      ...(isCustomDistance ? { distanciaPersonalizada: `${modal.customDistance.trim().replace(',', '.')} km` } : {}),
       eventName: modal.kit?.raceName,
       distance: modal.kit?.distance,
       user: modal.userData,
@@ -934,6 +952,40 @@ function RaceCard({
           <PriceTag>
             <span>{modalPrice ?? 'Preço no checkout'}</span>
           </PriceTag>
+
+          <FormGroup>
+            <Label>Qual distância você quer correr?</Label>
+            <GenderSelector>
+              {['25', '50', '100', '150', '200', 'outro'].map(distance => (
+                <GenderButton
+                  key={distance}
+                  type="button"
+                  $selected={modal.distanceChoice === distance}
+                  onClick={() => {
+                    setModal(prev => ({ ...prev, distanceChoice: distance }))
+                    setCheckoutError(null)
+                  }}
+                >
+                  {distance === 'outro' ? 'Outro percurso' : `${distance} km`}
+                </GenderButton>
+              ))}
+            </GenderSelector>
+            {modal.distanceChoice === 'outro' && (
+              <>
+                <Label htmlFor={`custom-distance-${kit.id}`}>Distância em quilômetros</Label>
+                <Input
+                  id={`custom-distance-${kit.id}`}
+                  type="number"
+                  min="0.1"
+                  step="any"
+                  inputMode="decimal"
+                  placeholder="Ex.: 37"
+                  value={modal.customDistance}
+                  onChange={event => setModal(prev => ({ ...prev, customDistance: event.target.value }))}
+                />
+              </>
+            )}
+          </FormGroup>
 
           <FormGroup>
             <Label htmlFor={`coupon-${kit.id}`}>Cupom de desconto</Label>

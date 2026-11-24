@@ -24,6 +24,7 @@ type FrontendCheckoutPayload = {
   shirtNumber?: string
   shoeNumber?: string
   cupom?: string
+  distanciaPersonalizada?: string
 }
 
 type ApiCategoria = 'MASCULINO' | 'FEMININO' | 'MAIOR_60' | 'LGBTQIA' | 'PCD'
@@ -41,6 +42,7 @@ type ApiCheckoutPayload = {
   equipe: string
   numeroCamisa: string
   cupom?: string
+  distanciaPersonalizada?: string
 }
 
 type CheckoutApiResult = {
@@ -142,6 +144,9 @@ function criarPayloadApi(dados: FrontendCheckoutPayload): ApiCheckoutPayload {
       ? (dados.shirtNumber ?? dados.shirtSize ?? dados.shoeNumber ?? '')
       : '',
     ...(dados.cupom?.trim() ? { cupom: dados.cupom.trim() } : {}),
+    ...(dados.distanciaPersonalizada?.trim()
+      ? { distanciaPersonalizada: dados.distanciaPersonalizada.trim() }
+      : {}),
   }
 
   validarPayloadApi(payload)
