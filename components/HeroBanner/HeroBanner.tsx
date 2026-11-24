@@ -11,9 +11,9 @@ import {
 } from './Style'
 
 const banners = [
-  { src: "/Silvete_Generated_NOVO.jpg", position: "center center" },
-  { src: "/banner2.png", position: "center center" },
-  { src: "/banner3.png", position: "center top" },   // ajusta para não cortar o rosto
+  { src: "/images/races/banner.png", position: "center center" },
+  { src: "/images/races/banner2.png", position: "center center" },
+  { src: "/images/races/banner3.png", position: "center top" },   // ajusta para não cortar o rosto
 ]
 
 export default function HeroBanner() {

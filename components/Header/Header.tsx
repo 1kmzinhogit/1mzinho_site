@@ -24,12 +24,11 @@ export default function Header() {
     <HeaderWrapper>
       <Container>
         <Logo href="#inicio">
-          {/* Alterna entre as logos neon/azul/branca que estão em /public */}
           <TitleImage
-            src="/logo_neon.png"
+            src="/images/brand/logo_neon.png"
             alt="1kmzinho"
-            onMouseEnter={(e) => { e.currentTarget.src = '/logo_azul.png' }}
-            onMouseLeave={(e) => { e.currentTarget.src = '/logo_branca.png' }}
+            onMouseEnter={(e) => { e.currentTarget.src = '/images/brand/logo_azul.png' }}
+            onMouseLeave={(e) => { e.currentTarget.src = '/images/brand/logo_branca.png' }}
           />
         </Logo>
         
