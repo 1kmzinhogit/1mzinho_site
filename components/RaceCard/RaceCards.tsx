@@ -1174,6 +1174,10 @@ function RaceCard({
             </Message>
           )}
 
+          <FormHint>
+            Se a página apresentar instabilidade, aguarde alguns instantes e tente novamente em alguns minutos.
+          </FormHint>
+
           <ConfirmButton type="button" onClick={handleConfirmPurchase} disabled={!isEventAvailable || isCheckoutLoading}>
             <CreditCard size={18} />
             Ir para Pagamento
