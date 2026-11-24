@@ -23,6 +23,7 @@ type FrontendCheckoutPayload = {
   kitColorName?: string
   shirtNumber?: string
   shoeNumber?: string
+  cupom?: string
 }
 
 type ApiCategoria = 'MASCULINO' | 'FEMININO' | 'MAIOR_60' | 'LGBTQIA' | 'PCD'
@@ -39,6 +40,7 @@ type ApiCheckoutPayload = {
   categoria: ApiCategoria
   equipe: string
   numeroCamisa: string
+  cupom?: string
 }
 
 type CheckoutApiResult = {
@@ -46,6 +48,11 @@ type CheckoutApiResult = {
   message?: string
   detail?: string
   linkPagamento?: string
+  codigoCupom?: string | null
+  descontoCupom?: number
+  valorIngresso?: number
+  taxaServico?: number
+  total?: number
 }
 
 const REQUIRED_FIELDS: Array<keyof Pick<
@@ -134,6 +141,7 @@ function criarPayloadApi(dados: FrontendCheckoutPayload): ApiCheckoutPayload {
     numeroCamisa: includesShirt
       ? (dados.shirtNumber ?? dados.shirtSize ?? dados.shoeNumber ?? '')
       : '',
+    ...(dados.cupom?.trim() ? { cupom: dados.cupom.trim() } : {}),
   }
 
   validarPayloadApi(payload)

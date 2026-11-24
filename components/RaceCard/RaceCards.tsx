@@ -67,6 +67,14 @@ type LotePreco = {
   valor: number
 }
 
+type CupomQuote = {
+  codigoCupom: string
+  valorIngresso: number
+  descontoCupom: number
+  taxaServico: number
+  total: number
+}
+
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : null
 }
@@ -291,8 +299,9 @@ function RaceCard({
   const initialKitColor = kitColors[0]?.color ?? '#d7ff32'
   const documents = kit.documents ?? []
   const isDocumentsOpen = openDocumentsKitId === kit.backendKitId
-  const cardPrice = formatCurrency(getPrecoLote(selectedKit))
   const selectedKitConfig = kit.kitOptions?.find(option => option.id === selectedKit.backendKitId)
+  const selectedBasePrice = getPrecoLote(selectedKit)
+  const cardPrice = formatCurrency(selectedBasePrice === null ? null : selectedBasePrice + (selectedKitConfig?.siteFee ?? 0))
   const includesShirt = selectedKitConfig?.includesShirt ?? kit.includesShirt ?? true
   const availableCategories = useMemo<GenderCategory[]>(() => {
     const categoryLabels: Array<{ apiCategory: ApiCategoria; label: GenderCategory }> = [
@@ -339,6 +348,10 @@ function RaceCard({
   })
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false)
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
+  const [cupomInput, setCupomInput] = useState('')
+  const [cupomQuote, setCupomQuote] = useState<CupomQuote | null>(null)
+  const [cupomLoading, setCupomLoading] = useState(false)
+  const [cupomError, setCupomError] = useState<string | null>(null)
   const [shareCopied, setShareCopied] = useState(false)
 
   const handleShare = async () => {
@@ -370,7 +383,12 @@ function RaceCard({
   useScrollLock(modal.isOpen)
 
   const modalPriceCategory = modal.isElderly ? '60+' : modal.gender
-  const modalPrice = formatCurrency(getPrecoLote(modal.kit ?? selectedKit, modalPriceCategory))
+  const modalKit = modal.kit ?? selectedKit
+  const modalBasePrice = getPrecoLote(modalKit, modalPriceCategory)
+  const modalSiteFee = modalKit.kitOptions?.find(option => option.id === modalKit.backendKitId)?.siteFee ?? 0
+  const modalPrice = cupomQuote
+    ? formatCurrency(cupomQuote.total)
+    : formatCurrency(modalBasePrice === null ? null : modalBasePrice + modalSiteFee)
 
   useEffect(() => {
     if (!kitOptions.some(option => option.backendKitId === selectedKitId)) {
@@ -481,6 +499,9 @@ function RaceCard({
       confirmEmail: prev.confirmEmail.trim(),
     }))
 
+    setCupomInput('')
+    setCupomQuote(null)
+    setCupomError(null)
     setModal({
       isOpen: true,
       size: 'M',
@@ -506,8 +527,60 @@ function RaceCard({
     setModal(prev => ({ ...prev, isOpen: false }))
   }
 
+  const handleApplyCoupon = async () => {
+    const codigo = cupomInput.trim()
+    if (!codigo || !modal.kit || cupomLoading || isCheckoutLoading) return
+
+    setCupomLoading(true)
+    setCupomError(null)
+    setCupomQuote(null)
+
+    try {
+      const response = await fetch('/api/cupons/validar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          kitId: modal.kit.backendKitId,
+          cupom: codigo,
+          categoria: modal.gender,
+          isElderly: modal.isElderly,
+        }),
+      })
+      const result = await response.json() as CupomQuote & { erro?: string; message?: string }
+      if (!response.ok) {
+        throw new Error(result.erro ?? result.message ?? 'Este cupom não é válido para esta corrida.')
+      }
+      if (
+        typeof result.descontoCupom !== 'number' ||
+        typeof result.total !== 'number' ||
+        typeof result.valorIngresso !== 'number' ||
+        typeof result.taxaServico !== 'number'
+      ) {
+        throw new Error('A API não retornou os valores do desconto e do total.')
+      }
+      setCupomQuote(result)
+      setCupomInput(result.codigoCupom ?? codigo)
+    } catch (error) {
+      setCupomError(error instanceof Error ? error.message : 'Não foi possível validar o cupom.')
+    } finally {
+      setCupomLoading(false)
+    }
+  }
+
+  const handleRemoveCoupon = () => {
+    if (isCheckoutLoading || cupomLoading) return
+    setCupomInput('')
+    setCupomQuote(null)
+    setCupomError(null)
+  }
+
   const handleConfirmPurchase = async () => {
     if (isCheckoutLoading) return
+
+    if (cupomInput.trim() && !cupomQuote) {
+      setCupomError('Aplique novamente o cupom antes de continuar. O código ainda não foi validado para esta categoria.')
+      return
+    }
 
     if (!isFormValid || !modal.userData) {
       setCheckoutError('Preencha todos os campos obrigatórios corretamente, incluindo um e-mail válido.')
@@ -526,6 +599,7 @@ function RaceCard({
       isElderly: modal.isElderly,
       shoeNumber: modal.shoeNumber,
       teamName: modal.teamName,
+      cupom: cupomQuote?.codigoCupom,
       kitColor: includesShirt ? modal.kitColor : undefined,
       kitColorName: includesShirt ? (selectedKitColor?.name ?? '') : undefined,
     }
@@ -546,10 +620,25 @@ function RaceCard({
         url?: string
         erro?: string
         message?: string
+        codigoCupom?: string | null
+        descontoCupom?: number
+        valorIngresso?: number
+        taxaServico?: number
+        total?: number
       }
 
       if (!response.ok) {
         throw new Error(result.erro ?? result.message ?? 'Não foi possível preparar o pagamento.')
+      }
+
+      if (cupomQuote && typeof result.descontoCupom === 'number' && typeof result.total === 'number') {
+        setCupomQuote({
+          codigoCupom: result.codigoCupom ?? cupomQuote.codigoCupom,
+          valorIngresso: result.valorIngresso ?? cupomQuote.valorIngresso,
+          descontoCupom: result.descontoCupom,
+          taxaServico: result.taxaServico ?? cupomQuote.taxaServico,
+          total: result.total,
+        })
       }
 
       const paymentUrl = result.linkPagamento ?? result.init_point ?? result.sandbox_init_point ?? result.url
@@ -614,7 +703,9 @@ function RaceCard({
         <Description>{kit.description}</Description>
 
         <LotInfo>
-          <LotBadge>Lote: {String(kit.lot).padStart(2, '0')} disponível</LotBadge>
+          <LotBadge>
+            Lote disponível: {sharedAvailableSlots} {sharedAvailableSlots === 1 ? 'vaga' : 'vagas'}
+          </LotBadge>
           {kit.organizer && (
             <OrganizerInfo>
               <OrganizerName>Organizador: {kit.organizer}</OrganizerName>
@@ -845,6 +936,54 @@ function RaceCard({
           </PriceTag>
 
           <FormGroup>
+            <Label htmlFor={`coupon-${kit.id}`}>Cupom de desconto</Label>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'stretch' }}>
+              <Input
+                id={`coupon-${kit.id}`}
+                type="text"
+                autoComplete="off"
+                placeholder="Digite seu cupom"
+                value={cupomInput}
+                disabled={cupomLoading || isCheckoutLoading}
+                onChange={event => {
+                  setCupomInput(event.target.value)
+                  setCupomQuote(null)
+                  setCupomError(null)
+                }}
+                onKeyDown={event => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault()
+                    void handleApplyCoupon()
+                  }
+                }}
+              />
+              {cupomQuote ? (
+                <ActionButton type="button" $variant="docs" onClick={handleRemoveCoupon} disabled={isCheckoutLoading}>
+                  Remover
+                </ActionButton>
+              ) : (
+                <ActionButton
+                  type="button"
+                  $variant="docs"
+                  onClick={() => void handleApplyCoupon()}
+                  disabled={!cupomInput.trim() || cupomLoading || isCheckoutLoading}
+                >
+                  {cupomLoading ? <><Loader2 size={16} />Validando</> : 'Aplicar'}
+                </ActionButton>
+              )}
+            </div>
+            {cupomError && <Message $type="error" role="alert"><AlertCircle size={16} />{cupomError}</Message>}
+            {cupomQuote && (
+              <Message $type="success" role="status" aria-live="polite">
+                <Check size={16} />Cupom {cupomQuote.codigoCupom} aplicado.
+                <span style={{ display: 'block', marginLeft: '1.5rem' }}>
+                  Desconto: {formatCurrency(cupomQuote.descontoCupom)} · Taxa: {formatCurrency(cupomQuote.taxaServico)} · Total: {formatCurrency(cupomQuote.total)}
+                </span>
+              </Message>
+            )}
+          </FormGroup>
+
+          <FormGroup>
             <Label>Categoria</Label>
             <GenderSelector>
               {availableCategories.map(gender => (
@@ -852,7 +991,11 @@ function RaceCard({
                   key={gender}
                   type="button"
                   $selected={modal.gender === gender}
-                  onClick={() => setModal(prev => ({ ...prev, gender }))}
+                  onClick={() => {
+                    setModal(prev => ({ ...prev, gender }))
+                    setCupomQuote(null)
+                    setCupomError(null)
+                  }}
                 >
                   {gender}
                 </GenderButton>
@@ -865,7 +1008,11 @@ function RaceCard({
               <input
                 type="checkbox"
                 checked={modal.isElderly}
-                onChange={e => setModal(prev => ({ ...prev, isElderly: e.target.checked }))}
+                onChange={e => {
+                  setModal(prev => ({ ...prev, isElderly: e.target.checked }))
+                  setCupomQuote(null)
+                  setCupomError(null)
+                }}
               />
               <span>Idoso (60+)</span>
             </ElderlyCheckbox>
