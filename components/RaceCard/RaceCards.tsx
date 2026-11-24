@@ -608,12 +608,12 @@ function RaceCard({
 
     const selectedKitColor = kitColors.find(({ color }) => color === modal.kitColor)
     const isCustomDistance = modal.distanceChoice === 'outro'
-    const customDistanceInMeters = Number(modal.customDistance.trim().replace(',', '.')) * 1000
+    const customDistanceInKm = modal.customDistance.trim().replace(',', '.')
     const paymentData = {
       kitId: isCustomDistance
         ? modal.kit?.backendKitId
         : checkoutKitId,
-      ...(isCustomDistance ? { distanciaPersonalizada: `${customDistanceInMeters} metros` } : {}),
+      ...(isCustomDistance ? { distanciaPersonalizada: `${customDistanceInKm} km` } : {}),
       eventName: modal.kit?.raceName,
       distance: modal.kit?.distance,
       user: modal.userData,
@@ -972,7 +972,10 @@ function RaceCard({
                     inputMode="decimal"
                     placeholder="Ex.: 5"
                     value={modal.customDistance}
-                    onChange={event => setModal(prev => ({ ...prev, customDistance: event.target.value }))}
+                    onChange={event => {
+                      setModal(prev => ({ ...prev, customDistance: event.target.value }))
+                      setCheckoutError(null)
+                    }}
                     style={{ paddingRight: '3.5rem' }}
                   />
                   {modal.customDistance && (
