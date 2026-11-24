@@ -11,7 +11,7 @@ import {
 } from './Style'
 
 const banners = [
-  { src: "/banner.png",  position: "center center" },
+  { src: "/Silvete_Generated_NOVO.jpg", position: "center center" },
   { src: "/banner2.png", position: "center center" },
   { src: "/banner3.png", position: "center top" },   // ajusta para não cortar o rosto
 ]
