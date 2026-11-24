@@ -339,6 +339,8 @@ function RaceCard({
 
   const [modal, setModal] = useState<ModalState>({
     isOpen: false,
+    distanceChoice: '',
+    customDistance: '',
     size: 'M',
     gender: 'Masculino',
     isElderly: false,
