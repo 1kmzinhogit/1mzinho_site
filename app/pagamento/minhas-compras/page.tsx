@@ -4,7 +4,7 @@ import styled from 'styled-components'
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Download } from 'lucide-react'
 import { breakpoints } from '@/lib/breakpoints'
 
 type ApiOrder = {
@@ -41,6 +41,11 @@ type RefundDraft = {
   messageTone: 'error' | 'success' | 'info'
   idSolicitacao?: string | number
   statusSolicitacao?: string
+}
+
+type ReceiptDraft = {
+  loading: boolean
+  message: string | null
 }
 
 type RefundRequestResponse = {
@@ -376,6 +381,32 @@ const RefundButton = styled.button`
   }
 `
 
+const ReceiptButton = styled.button`
+  margin-top: 1rem;
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 164, 245, 0.4);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: rgba(0, 164, 245, 0.09);
+  color: #73ceff;
+
+  &:hover:not(:disabled) {
+    background: rgba(0, 164, 245, 0.16);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.58;
+  }
+`
+
 const SecondaryButton = styled.button`
   width: 100%;
   padding: 0.8rem 1rem;
@@ -465,6 +496,11 @@ function getOrderKey(order: ApiOrder, index: number) {
   return String(order.idPedido ?? order.id ?? order.codigoPedido ?? order.codigo ?? order.code ?? index)
 }
 
+function orderCodeForFile(order: ApiOrder) {
+  const code = order.codigoPedido ?? order.codigo ?? order.code ?? order.idPedido ?? order.id ?? 'compra'
+  return String(code).replace(/[^a-zA-Z0-9_-]/g, '-')
+}
+
 function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
 }
@@ -482,6 +518,7 @@ export default function MinhasComprasPage() {
   const [email, setEmail] = useState('')
   const [orders, setOrders] = useState<ApiOrder[]>([])
   const [refundDrafts, setRefundDrafts] = useState<Record<string, RefundDraft>>({})
+  const [receiptDrafts, setReceiptDrafts] = useState<Record<string, ReceiptDraft>>({})
   const [loading, setLoading] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
@@ -492,6 +529,7 @@ export default function MinhasComprasPage() {
     setMessage(null)
     setOrders([])
     setRefundDrafts({})
+    setReceiptDrafts({})
     setHasSearched(false)
 
     const normalizedCpf = normalizeCPF(cpf)
@@ -586,6 +624,47 @@ export default function MinhasComprasPage() {
       message: null,
       messageTone: 'info',
     })
+  }
+
+  async function downloadReceipt(order: ApiOrder, orderKey: string) {
+    const idPedido = order.idPedido ?? order.id
+    if (!idPedido) {
+      setReceiptDrafts(prev => ({ ...prev, [orderKey]: { loading: false, message: 'Não foi possível identificar o pedido.' } }))
+      return
+    }
+
+    setReceiptDrafts(prev => ({ ...prev, [orderKey]: { loading: true, message: null } }))
+    try {
+      const res = await fetch(`${API_BASE_URL}/pedidos/${encodeURIComponent(String(idPedido))}/comprovante`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cpf: normalizeCPF(cpf), email: email.trim() }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({})) as { erro?: string; message?: string }
+        throw new Error(data.erro ?? data.message ?? 'Não foi possível baixar o comprovante agora.')
+      }
+
+      const pdf = await res.blob()
+      const url = URL.createObjectURL(pdf)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `comprovante-inscricao-${orderCodeForFile(order)}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      URL.revokeObjectURL(url)
+      setReceiptDrafts(prev => ({ ...prev, [orderKey]: { loading: false, message: 'Comprovante baixado.' } }))
+    } catch (error) {
+      setReceiptDrafts(prev => ({
+        ...prev,
+        [orderKey]: {
+          loading: false,
+          message: error instanceof Error ? error.message : 'Não foi possível baixar o comprovante agora.',
+        },
+      }))
+    }
   }
 
   async function confirmRefundRequest(order: ApiOrder, orderKey: string) {
@@ -742,6 +821,8 @@ export default function MinhasComprasPage() {
                 messageTone: 'info',
               }
               const canRequestRefund = Boolean(order.permiteSolicitarReembolso && isValidEmail(draft.emailContato))
+              const receiptDraft = receiptDrafts[orderId]
+              const canDownloadReceipt = String(order.status ?? '').toUpperCase() === 'APROVADO'
 
               return (
                 <OrderCard key={`${orderId}-${index}`}>
@@ -789,6 +870,21 @@ export default function MinhasComprasPage() {
                       </OrderItem>
                     )}
                   </OrderGrid>
+
+                  <ReceiptButton
+                    type="button"
+                    disabled={!canDownloadReceipt || Boolean(receiptDraft?.loading)}
+                    onClick={() => void downloadReceipt(order, orderId)}
+                    title={canDownloadReceipt ? 'Baixar comprovante de inscrição em PDF' : 'Disponível após a confirmação do pagamento'}
+                  >
+                    <Download size={17} aria-hidden="true" />
+                    {receiptDraft?.loading ? 'Gerando comprovante...' : 'Baixar comprovante em PDF'}
+                  </ReceiptButton>
+                  {receiptDraft?.message && (
+                    <Helper $tone={receiptDraft.message.startsWith('Comprovante baixado') ? 'success' : 'error'}>
+                      {receiptDraft.message}
+                    </Helper>
+                  )}
 
                   <RefundInfo>
                     <strong>Reembolso:</strong> {refundPolicyText}
