@@ -169,6 +169,18 @@ function getPrecoLote(lote: { precos?: LotePreco[]; backendPrice?: number; price
   return Number.isFinite(valor) ? valor : null
 }
 
+function filtrarDistanciaKm(value: string) {
+  const filtered = value.replace(/[^\d.,]/g, '')
+  const separatorIndex = filtered.search(/[.,]/)
+
+  if (separatorIndex === -1) return filtered
+
+  const integer = filtered.slice(0, separatorIndex).replace(/[.,]/g, '')
+  const decimal = filtered.slice(separatorIndex + 1).replace(/[.,]/g, '')
+
+  return `${integer}${filtered[separatorIndex]}${decimal}`
+}
+
 function extractStatusItems(payload: unknown): Record<string, unknown>[] {
   if (Array.isArray(payload)) return payload.map(asRecord).filter(Boolean) as Record<string, unknown>[]
 
@@ -973,7 +985,7 @@ function RaceCard({
                     placeholder="Ex.: 5"
                     value={modal.customDistance}
                     onChange={event => {
-                      setModal(prev => ({ ...prev, customDistance: event.target.value }))
+                      setModal(prev => ({ ...prev, customDistance: filtrarDistanciaKm(event.target.value) }))
                       setCheckoutError(null)
                     }}
                     style={{ paddingRight: '3.5rem' }}
