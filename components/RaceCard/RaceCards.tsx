@@ -15,7 +15,7 @@ import {
   ModalSubtitle, PriceTag, SizeSelector, SizeButton, ShoeNumberInput, ConfirmButton,
   GenderSelector, GenderButton, ElderlyCheckbox, TeamNameInput, ColorSelector, ColorButton, ColorLabel,
   BannerCorrida, BannerCarousel, BannerCarouselImage, BannerCarouselButton, BannerCarouselDots, BannerCarouselDot, DocumentsPanel, DocumentLink, DocumentButtonRow,
-  KitOptionSelector, KitOptionButton, CheckoutLoadingOverlay, CheckoutLoadingCard,
+  CheckoutLoadingOverlay, CheckoutLoadingCard,
 } from './Style'
 
 const defaultKitColors = [
@@ -393,6 +393,9 @@ function RaceCard({
   const modalPrice = cupomQuote
     ? formatCurrency(cupomQuote.total)
     : formatCurrency(modalBasePrice === null ? null : modalBasePrice + modalSiteFee)
+  const checkoutKitId = modal.distanceChoice && modal.distanceChoice !== 'outro'
+    ? `${modal.kit?.id ?? kit.id}-${modal.distanceChoice}-km`
+    : modal.kit?.backendKitId
 
   useEffect(() => {
     if (!kitOptions.some(option => option.backendKitId === selectedKitId)) {
@@ -535,7 +538,7 @@ function RaceCard({
 
   const handleApplyCoupon = async () => {
     const codigo = cupomInput.trim()
-    if (!codigo || !modal.kit || cupomLoading || isCheckoutLoading) return
+    if (!codigo || !modal.kit || !modal.distanceChoice || cupomLoading || isCheckoutLoading) return
 
     setCupomLoading(true)
     setCupomError(null)
@@ -546,7 +549,7 @@ function RaceCard({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          kitId: modal.kit.backendKitId,
+          kitId: checkoutKitId,
           cupom: codigo,
           categoria: modal.gender,
           isElderly: modal.isElderly,
@@ -608,7 +611,7 @@ function RaceCard({
     const paymentData = {
       kitId: isCustomDistance
         ? modal.kit?.backendKitId
-        : `${modal.kit?.id ?? 'desafio-silvetes-2027'}-${modal.distanceChoice}-km`,
+        : checkoutKitId,
       ...(isCustomDistance ? { distanciaPersonalizada: `${modal.customDistance.trim().replace(',', '.')} km` } : {}),
       eventName: modal.kit?.raceName,
       distance: modal.kit?.distance,
@@ -739,34 +742,6 @@ function RaceCard({
         <Price>
           {cardPrice ?? 'Preço no checkout'} <small>/ kit</small>
         </Price>
-
-        <FormGroup>
-          <Label>Escolha seu kit</Label>
-          <KitOptionSelector>
-            {kitOptions.map(option => (
-              (() => {
-                const configuredOption = kit.kitOptions?.find(config => config.id === option.backendKitId)
-                const siteFee = configuredOption?.siteFee ?? 0
-                const basePrice = configuredOption?.price ?? getPrecoLote(option)
-                const priceLabel = siteFee > 0 && basePrice !== null
-                  ? `${formatCurrency(basePrice)} + ${formatCurrency(siteFee)} taxa`
-                  : formatCurrency(getPrecoLote(option)) ?? 'Preço no checkout'
-
-                return (
-                  <KitOptionButton
-                    key={option.backendKitId}
-                    type="button"
-                    $selected={selectedKit.backendKitId === option.backendKitId}
-                    onClick={() => setSelectedKitId(option.backendKitId)}
-                  >
-                    <strong>{option.backendLotLabel}</strong>
-                    <span>{priceLabel}</span>
-                  </KitOptionButton>
-                )
-              })()
-            ))}
-          </KitOptionSelector>
-        </FormGroup>
 
         <FormGroup>
           <Label>Nome Completo</Label>
@@ -957,21 +932,35 @@ function RaceCard({
 
           <FormGroup>
             <Label>Qual distância você quer correr?</Label>
-            <GenderSelector>
-              {['25', '50', '100', '150', '200', 'outro'].map(distance => (
-                <GenderButton
-                  key={distance}
-                  type="button"
-                  $selected={modal.distanceChoice === distance}
-                  onClick={() => {
-                    setModal(prev => ({ ...prev, distanceChoice: distance }))
-                    setCheckoutError(null)
-                  }}
-                >
-                  {distance === 'outro' ? 'Outro percurso' : `${distance} km`}
-                </GenderButton>
-              ))}
-            </GenderSelector>
+            <select
+              aria-label="Selecione a distância"
+              value={modal.distanceChoice}
+              disabled={isCheckoutLoading}
+              onChange={event => {
+                setModal(prev => ({ ...prev, distanceChoice: event.target.value }))
+                setCheckoutError(null)
+                setCupomQuote(null)
+                setCupomError(null)
+              }}
+              style={{
+                width: '100%',
+                minHeight: 48,
+                padding: '0.75rem 1rem',
+                borderRadius: 12,
+                border: '1px solid rgba(255,255,255,0.2)',
+                background: 'rgba(8,22,56,0.8)',
+                color: '#fff',
+                font: 'inherit',
+              }}
+            >
+              <option value="" disabled>Selecione a distância</option>
+              <option value="25">25 km</option>
+              <option value="50">50 km</option>
+              <option value="100">100 km</option>
+              <option value="150">150 km</option>
+              <option value="200">200 km</option>
+              <option value="outro">Outro percurso</option>
+            </select>
             {modal.distanceChoice === 'outro' && (
               <>
                 <Label htmlFor={`custom-distance-${kit.id}`}>Distância em quilômetros</Label>

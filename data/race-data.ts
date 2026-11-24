@@ -20,11 +20,11 @@ export const raceKits: RaceKit[] = [
     containGalleryImages: ['/images/medals/medalha_800x1000.webp'],
     includesShirt: false,
     kitOptions: [
-      { id: 'desafio-silvetes-2027-25-km', label: '25 km', price: 45.00, includesShirt: false, siteFee: 5.00, lot: 1, availableSlots: 100, soldSlots: 0 },
-      { id: 'desafio-silvetes-2027-50-km', label: '50 km', price: 45.00, includesShirt: false, siteFee: 5.00, lot: 1, availableSlots: 100, soldSlots: 0 },
-      { id: 'desafio-silvetes-2027-100-km', label: '100 km', price: 45.00, includesShirt: false, siteFee: 5.00, lot: 1, availableSlots: 100, soldSlots: 0 },
-      { id: 'desafio-silvetes-2027-150-km', label: '150 km', price: 45.00, includesShirt: false, siteFee: 5.00, lot: 1, availableSlots: 100, soldSlots: 0 },
-      { id: 'desafio-silvetes-2027-200-km', label: '200 km', price: 45.00, includesShirt: false, siteFee: 5.00, lot: 1, availableSlots: 100, soldSlots: 0 },
+      { id: 'desafio-silvetes-2027-25-km', label: '25 km', price: 50.00, includesShirt: false, siteFee: 0, lot: 1, availableSlots: 100, soldSlots: 0 },
+      { id: 'desafio-silvetes-2027-50-km', label: '50 km', price: 50.00, includesShirt: false, siteFee: 0, lot: 1, availableSlots: 100, soldSlots: 0 },
+      { id: 'desafio-silvetes-2027-100-km', label: '100 km', price: 50.00, includesShirt: false, siteFee: 0, lot: 1, availableSlots: 100, soldSlots: 0 },
+      { id: 'desafio-silvetes-2027-150-km', label: '150 km', price: 50.00, includesShirt: false, siteFee: 0, lot: 1, availableSlots: 100, soldSlots: 0 },
+      { id: 'desafio-silvetes-2027-200-km', label: '200 km', price: 50.00, includesShirt: false, siteFee: 0, lot: 1, availableSlots: 100, soldSlots: 0 },
     ],
     documents: [
       { label: 'Regulamento oficial 2027', href: '/pdfs/regulamento-desafio-silvetes-2027.pdf' },
