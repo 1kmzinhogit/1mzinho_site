@@ -25,9 +25,12 @@ export async function generateMetadata({ params }: RacePageProps): Promise<Metad
   }
 
   const origin = await getOrigin()
-  const shareImage = race.shareImg ?? race.img
-  const imageUrl = shareImage ? new URL(shareImage, origin).toString() : undefined
+  const shareImage = race.shareImg ?? race.gallery?.[0] ?? race.img
+  const image = shareImage ? new URL(shareImage, origin) : undefined
+  if (image && race.shareVersion) image.searchParams.set('v', String(race.shareVersion))
+  const imageUrl = image?.toString()
   const pageUrl = `${origin}/corrida/${race.id}`
+  const sharePageUrl = race.shareVersion ? `${pageUrl}?v=${race.shareVersion}` : pageUrl
   const title = `${race.raceName} | 1kmzinho`
 
   return {
@@ -37,13 +40,13 @@ export async function generateMetadata({ params }: RacePageProps): Promise<Metad
     openGraph: {
       title,
       description: race.description,
-      url: pageUrl,
+      url: sharePageUrl,
       siteName: '1kmzinho',
       type: 'website',
       images: imageUrl ? [{
         url: imageUrl,
-        width: 1200,
-        height: 630,
+        width: 1344,
+        height: 756,
         type: race.shareImg ? 'image/jpeg' : undefined,
         alt: race.raceName,
       }] : [],

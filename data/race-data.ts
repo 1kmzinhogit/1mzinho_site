@@ -13,8 +13,8 @@ export const raceKits: RaceKit[] = [
     description: '📋 Visão Geral\n\n· 12 meses | 12 desafios | 12 conquistas — organização: Grupo Silvetes\n· Período: todo o ano de 2027\n· Aberto a integrantes do grupo e participantes externos, de qualquer cidade/estado\n· Caráter participativo e motivacional (não é competição entre pessoas)',
     organizer: 'Grupo Silvetes',
     img: '/images/races/banner-silvetes-2027-1200x675.webp',
-    shareImg: '/images/races/Silvete_Generated_NOVO.jpg?v=2',
-    shareVersion: 2,
+    shareImg: '/images/races/Silvete_Generated_NOVO.jpg',
+    shareVersion: 3,
     gallery: [
       '/images/races/Silvete_Generated_NOVO.jpg',
       '/images/medals/medalha_800x1000.webp',
